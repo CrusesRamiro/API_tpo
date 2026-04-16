@@ -2,5 +2,6 @@
     "java.configuration.updateBuildConfiguration": "interactive",
     "github.copilot.enable": {
         "*": false
-    }
+    },
+    "java.compile.nullAnalysis.mode": "disabled"
 }
