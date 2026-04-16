@@ -45,7 +45,7 @@ public class UsuarioController {
 
      @PostMapping
      public ResponseEntity<Usuario> create(@RequestBody UsuarioRequest request) {
-        Usuario nuevo = usuarioService.create(request.getUsername(), request.getPassword(), request.getNombre(), request.getApellido(), request.getEmail(), request.getRol());
+        Usuario nuevo = usuarioService.create(request.getUsername(), request.getPassword(), request.getNombre(), request.getApellido(), request.getEmail(), request.getRolId());
         return ResponseEntity.created(URI.create("/usuarios/" + nuevo.getId())).body(nuevo);
      }
     }
