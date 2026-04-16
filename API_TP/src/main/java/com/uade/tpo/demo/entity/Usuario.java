@@ -32,8 +32,8 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "rol_id", nullable = false)
+   @ManyToOne
+    @JoinColumn(name = "rol_id", nullable = true)
     private Rol rol;
 
     @Column(nullable = false, unique = true)
