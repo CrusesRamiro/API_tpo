@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.uade.tpo.demo.Requests.CategoriaRequest;
 import com.uade.tpo.demo.entity.Categoria;
 import com.uade.tpo.demo.service.CategoriaService;
 

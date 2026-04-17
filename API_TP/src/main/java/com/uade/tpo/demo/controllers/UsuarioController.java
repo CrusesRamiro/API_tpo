@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.uade.tpo.demo.Requests.UsuarioRequest;
 import com.uade.tpo.demo.entity.Usuario;
 import com.uade.tpo.demo.service.UsuarioService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,4 +49,7 @@ public class UsuarioController {
         Usuario nuevo = usuarioService.create(request.getUsername(), request.getPassword(), request.getNombre(), request.getApellido(), request.getEmail(), request.getRolId());
         return ResponseEntity.created(URI.create("/usuarios/" + nuevo.getId())).body(nuevo);
      }
+
+     //Modificación de usuarios (Corrección de nombres, datos, roles, etc.)
+     
     }

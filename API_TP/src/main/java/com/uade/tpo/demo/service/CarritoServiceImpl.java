@@ -51,6 +51,8 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public Carrito actualizarCantidad(Long usuarioId, Long itemId, Integer cantidad) {
+        //No tiene sentido, no deberia tener llamadas, a no ser que hardcodees la llamada api.
+        //Si lo haces desde el front, es imposible, Porque siempre estas viendo el carrito.
         Carrito carrito = getCarritoByUsuarioId(usuarioId);
 
         ItemCarrito itemCarrito = carrito.getItems().stream()
@@ -69,21 +71,30 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public void eliminarItem(Long usuarioId, Long itemId) {
+        //No tiene sentido, no deberia tener llamadas, a no ser que hardcodees la llamada api.
+        //Si lo haces desde el front, es imposible, Porque siempre estas viendo el carrito.
         Carrito carrito = getCarritoByUsuarioId(usuarioId);
+        
         carrito.getItems().removeIf(ic -> ic.getItem().getId().equals(itemId));
         carritoRepository.save(carrito);
     }
 
     @Override
     public void vaciarCarrito(Long usuarioId) {
+        //No tiene sentido, no deberia tener llamadas, a no ser que hardcodees la llamada api.
+        //Si lo haces desde el front, es imposible, Porque siempre estas viendo el carrito.
         Carrito carrito = getCarritoByUsuarioId(usuarioId);
+        
         carrito.getItems().clear();
         carritoRepository.save(carrito);
     }
 
     @Override
     public double calcularTotal(Long usuarioId) {
+        //No tiene sentido, no deberia tener llamadas, a no ser que hardcodees la llamada api.
+        //Si lo haces desde el front, es imposible, Porque siempre estas viendo el carrito.
         Carrito carrito = getCarritoByUsuarioId(usuarioId);
+        
         return carrito.getItems().stream()
                 .mapToDouble(ic -> ic.getItem().getPrecio() * ic.getCantidad())
                 .sum();

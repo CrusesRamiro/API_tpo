@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.uade.tpo.demo.Requests.ItemRequest;
 import com.uade.tpo.demo.entity.Item;
 import com.uade.tpo.demo.service.ItemService;
 

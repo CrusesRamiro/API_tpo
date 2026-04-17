@@ -1,4 +1,4 @@
-package com.uade.tpo.demo.controllers;
+package com.uade.tpo.demo.Requests;
 
 import lombok.Data;
 
@@ -11,3 +11,5 @@ public class UsuarioRequest {
     private String apellido;
     private Long rolId;
 }
+
+
