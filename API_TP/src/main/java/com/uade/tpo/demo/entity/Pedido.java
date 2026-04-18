@@ -50,6 +50,11 @@ public class Pedido {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "carrito_id", nullable = false)
+    private Carrito carrito;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<DetallePedido> detalle = new ArrayList<>();
