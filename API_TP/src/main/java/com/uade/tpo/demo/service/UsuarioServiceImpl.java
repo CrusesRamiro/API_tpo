@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.uade.tpo.demo.entity.Rol;
 import com.uade.tpo.demo.entity.Usuario;
@@ -19,6 +20,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Autowired
     private RolRepository rolRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public List<Usuario> getAll() {
@@ -42,7 +46,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         Usuario usuario = Usuario.builder()
                 .username(username)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .nombre(nombre)
                 .apellido(apellido)
                 .email(email)
