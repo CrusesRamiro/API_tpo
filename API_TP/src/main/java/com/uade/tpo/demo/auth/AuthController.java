@@ -1,13 +1,14 @@
 package com.uade.tpo.demo.auth;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+
+import com.uade.tpo.demo.api.ApiResponse;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
@@ -20,11 +21,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        try {
-            return ResponseEntity.ok(authService.login(request));
-        } catch (BadCredentialsException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, ex.getMessage(), ex);
-        }
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody AuthRequest request) {
+        AuthResponse authResponse = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success("Login realizado correctamente", authResponse));
     }
 }

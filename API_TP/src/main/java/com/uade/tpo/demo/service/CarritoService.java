@@ -16,11 +16,11 @@ public interface CarritoService {
 
     // Actualiza la cantidad de un item, si es 0 lo borra
 
-    void eliminarItem(Long usuarioId, Long itemId);
+    Carrito eliminarItem(Long usuarioId, Long itemId);
 
     // Elimina un item del carrito
 
-    void vaciarCarrito(Long usuarioId);
+    Carrito vaciarCarrito(Long usuarioId);
 
     //Elimina todos ! los items del carrito
 

@@ -7,7 +7,10 @@ import com.uade.tpo.demo.entity.Usuario;
 
 public interface UsuarioService {
     List<Usuario> getAll();
+    Usuario getById(Long id);
     Optional<Usuario> getByEmail(String Email);
     Optional<Usuario> getByUsername(String Username);
     Usuario create(String username, String password, String nombre, String apellido, String email, Long rolId);
+    Usuario update(Long id, String email, String nombre, String apellido, String password, Long rolId);
+    void delete(Long id);
 }

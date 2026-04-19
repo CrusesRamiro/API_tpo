@@ -1,8 +1,11 @@
 package com.uade.tpo.demo.controllers.config;
 
-import org.springframework.http.HttpMethod;
+import java.io.IOException;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -10,6 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uade.tpo.demo.api.ApiResponse;
 import com.uade.tpo.demo.auth.JwtAuthenticationFilter;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,9 +24,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final ObjectMapper objectMapper;
 
-        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, ObjectMapper objectMapper) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.objectMapper = objectMapper;
         }
 
         @Bean
@@ -29,21 +36,46 @@ public class SecurityConfig {
                 http
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .exceptionHandling(ex -> ex.authenticationEntryPoint(
-                                                (request, response, authException) -> response.sendError(
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint((request, response, authException) -> writeErrorResponse(
+                                                                response,
                                                                 HttpServletResponse.SC_UNAUTHORIZED,
-                                                                "No autorizado")))
+                                                                "No autorizado"))
+                                                .accessDeniedHandler((request, response, accessDeniedException) -> writeErrorResponse(
+                                                                response,
+                                                                HttpServletResponse.SC_FORBIDDEN,
+                                                                "No tenes permisos para acceder a este recurso")))
                                 .authorizeHttpRequests(req -> req
                                                 .requestMatchers("/error", "/actuator/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/auth/login", "/usuarios")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/items/**", "/categorias/**",
-                                                                "/roles/**", "/items/*/fotos")
+                                                                "/items/*/fotos", "/items/*/fotos/*")
                                                 .permitAll()
+                                                .requestMatchers("/roles/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/usuarios").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/usuarios/email/**", "/usuarios/Email/**",
+                                                                "/usuarios/username/**", "/usuarios/Username/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/pedidos").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/categorias/**", "/items/**", "/items/*/fotos")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PUT, "/categorias/**", "/items/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE, "/categorias/**", "/items/**",
+                                                                "/items/*/fotos/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/pedidos/*/estado").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthenticationFilter,
                                                 UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
+        }
+
+        private void writeErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+                response.setStatus(status);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                objectMapper.writeValue(response.getWriter(), ApiResponse.error(message));
         }
 }

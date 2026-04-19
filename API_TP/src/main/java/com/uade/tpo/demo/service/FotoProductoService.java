@@ -10,4 +10,5 @@ import com.uade.tpo.demo.entity.FotoProducto;
 public interface FotoProductoService {
     FotoProducto agregarFoto(Long itemId, MultipartFile archivo) throws IOException;
     List<FotoProducto> getFotosByItem(Long itemId);
+    void eliminarFoto(Long itemId, Long fotoId);
 }

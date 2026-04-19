@@ -8,4 +8,5 @@ import com.uade.tpo.demo.entity.Pedido;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByUsuarioId(Long usuarioId);
+    boolean existsByUsuarioId(Long usuarioId);
 }

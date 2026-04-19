@@ -1,12 +1,11 @@
 package com.uade.tpo.demo.controllers;
 
 import java.io.IOException;
-import java.util.Base64;
+import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,31 +14,48 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.uade.tpo.demo.api.ApiResponse;
+import com.uade.tpo.demo.dto.FotoProductoResponse;
+import com.uade.tpo.demo.entity.FotoProducto;
+import com.uade.tpo.demo.mapper.ResponseMapper;
 import com.uade.tpo.demo.service.FotoProductoService;
 
 @RestController
 @RequestMapping("/items/{itemId}/fotos")
 public class FotoProductoController {
 
-    @Autowired
-    private FotoProductoService fotoProductoService;
+    private final FotoProductoService fotoProductoService;
+    private final ResponseMapper responseMapper;
+
+    public FotoProductoController(FotoProductoService fotoProductoService, ResponseMapper responseMapper) {
+        this.fotoProductoService = fotoProductoService;
+        this.responseMapper = responseMapper;
+    }
 
     @PostMapping(consumes = "multipart/form-data")
-    public ResponseEntity<Void> agregarFoto(
+    public ResponseEntity<ApiResponse<FotoProductoResponse>> agregarFoto(
             @PathVariable Long itemId,
             @RequestParam("archivo") MultipartFile archivo) throws IOException {
+        FotoProducto fotoProducto = fotoProductoService.agregarFoto(itemId, archivo);
 
-        fotoProductoService.agregarFoto(itemId, archivo);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.created(URI.create("/items/" + itemId + "/fotos/" + fotoProducto.getId()))
+                .body(ApiResponse.success("Foto agregada correctamente",
+                        responseMapper.toFotoProductoResponse(fotoProducto)));
     }
 
     @GetMapping
-    public ResponseEntity<List<String>> getFotos(@PathVariable Long itemId) {
-        List<String> fotos = fotoProductoService.getFotosByItem(itemId)
+    public ResponseEntity<ApiResponse<List<FotoProductoResponse>>> getFotos(@PathVariable Long itemId) {
+        List<FotoProductoResponse> fotos = fotoProductoService.getFotosByItem(itemId)
                 .stream()
-                .map(foto -> Base64.getEncoder().encodeToString(foto.getImagen()))
-                .collect(Collectors.toList());
+                .map(responseMapper::toFotoProductoResponse)
+                .toList();
 
-        return ResponseEntity.ok(fotos);
+        return ResponseEntity.ok(ApiResponse.success("Fotos obtenidas correctamente", fotos));
+    }
+
+    @DeleteMapping("/{fotoId}")
+    public ResponseEntity<ApiResponse<Void>> eliminarFoto(@PathVariable Long itemId, @PathVariable Long fotoId) {
+        fotoProductoService.eliminarFoto(itemId, fotoId);
+        return ResponseEntity.ok(ApiResponse.success("Foto eliminada correctamente"));
     }
 }

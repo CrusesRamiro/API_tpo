@@ -8,4 +8,5 @@ import com.uade.tpo.demo.entity.FotoProducto;
 
 public interface FotoProductoRepository extends JpaRepository<FotoProducto, Long> {
     List<FotoProducto> findByItemId(Long itemId);
+    java.util.Optional<FotoProducto> findByIdAndItemId(Long id, Long itemId);
 }

@@ -2,9 +2,7 @@ package com.uade.tpo.demo.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,29 +12,38 @@ import com.uade.tpo.demo.entity.EstadoPedido;
 import com.uade.tpo.demo.entity.Item;
 import com.uade.tpo.demo.entity.ItemCarrito;
 import com.uade.tpo.demo.entity.Pedido;
+import com.uade.tpo.demo.exception.BadRequestException;
+import com.uade.tpo.demo.exception.NotFoundException;
 import com.uade.tpo.demo.repository.CarritoRepository;
 import com.uade.tpo.demo.repository.PedidoRepository;
 
 @Service
+@Transactional
 public class PedidoServiceImpl implements PedidoService {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    private final PedidoRepository pedidoRepository;
+    private final CarritoRepository carritoRepository;
 
-    @Autowired
-    private CarritoRepository carritoRepository;
+    public PedidoServiceImpl(PedidoRepository pedidoRepository, CarritoRepository carritoRepository) {
+        this.pedidoRepository = pedidoRepository;
+        this.carritoRepository = carritoRepository;
+    }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Pedido> getAll() {
         return pedidoRepository.findAll();
     }
 
     @Override
-    public Optional<Pedido> getById(Long id) {
-        return pedidoRepository.findById(id);
+    @Transactional(readOnly = true)
+    public Pedido getById(Long id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Pedido no encontrado con id: " + id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Pedido> getByUsuarioId(Long usuarioId) {
         return pedidoRepository.findByUsuarioId(usuarioId);
     }
@@ -45,10 +52,10 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     public Pedido crearDesdeCarrito(Long usuarioId) {
         Carrito carrito = carritoRepository.findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Carrito no encontrado para el usuario: " + usuarioId));
+                .orElseThrow(() -> new NotFoundException("Carrito no encontrado para el usuario: " + usuarioId));
 
         if (carrito.getItems() == null || carrito.getItems().isEmpty()) {
-            throw new RuntimeException("No se puede generar un pedido con el carrito vacio");
+            throw new BadRequestException("No se puede generar un pedido con el carrito vacio");
         }
 
         Pedido pedido = Pedido.builder()
@@ -68,7 +75,7 @@ public class PedidoServiceImpl implements PedidoService {
             Integer cantidad = itemCarrito.getCantidad();
 
             if (item.getStock() < cantidad) {
-                throw new RuntimeException(
+                throw new BadRequestException(
                         "Stock insuficiente para el item " + item.getId() + ". Disponible: "
                                 + item.getStock() + ", solicitado: " + cantidad);
             }
@@ -96,21 +103,68 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoGuardado;
     }
 
+    @Override
+    public Pedido updateEstado(Long id, EstadoPedido estado) {
+        if (estado == null) {
+            throw new BadRequestException("El estado es obligatorio");
+        }
+
+        if (estado == EstadoPedido.CANCELADO) {
+            return cancelar(id);
+        }
+
+        Pedido pedido = getById(id);
+
+        if (pedido.getEstado() == EstadoPedido.CANCELADO) {
+            throw new BadRequestException("No se puede modificar un pedido cancelado");
+        }
+
+        if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
+            throw new BadRequestException("No se puede modificar un pedido entregado");
+        }
+
+        pedido.setEstado(estado);
+        return pedidoRepository.save(pedido);
+    }
+
+    @Override
+    public Pedido cancelar(Long id) {
+        Pedido pedido = getById(id);
+
+        if (pedido.getEstado() == EstadoPedido.CANCELADO) {
+            throw new BadRequestException("El pedido ya esta cancelado");
+        }
+
+        if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
+            throw new BadRequestException("No se puede cancelar un pedido entregado");
+        }
+
+        for (DetallePedido detallePedido : pedido.getDetalle()) {
+            Item item = detallePedido.getItem();
+            item.setStock(item.getStock() + detallePedido.getCantidad());
+        }
+
+        pedido.setEstado(EstadoPedido.CANCELADO);
+        return pedidoRepository.save(pedido);
+    }
+
     private void validarItemCarrito(ItemCarrito itemCarrito) {
         if (itemCarrito.getItem() == null) {
-            throw new RuntimeException("El carrito contiene un item invalido");
+            throw new BadRequestException("El carrito contiene un item invalido");
         }
 
         if (itemCarrito.getCantidad() == null || itemCarrito.getCantidad() <= 0) {
-            throw new RuntimeException("La cantidad del item " + itemCarrito.getItem().getId() + " es invalida");
+            throw new BadRequestException("La cantidad del item " + itemCarrito.getItem().getId() + " es invalida");
         }
 
         if (itemCarrito.getItem().getPrecio() == null) {
-            throw new RuntimeException("El item " + itemCarrito.getItem().getId() + " no tiene precio configurado");
+            throw new BadRequestException(
+                    "El item " + itemCarrito.getItem().getId() + " no tiene precio configurado");
         }
 
         if (itemCarrito.getItem().getStock() == null) {
-            throw new RuntimeException("El item " + itemCarrito.getItem().getId() + " no tiene stock configurado");
+            throw new BadRequestException(
+                    "El item " + itemCarrito.getItem().getId() + " no tiene stock configurado");
         }
     }
 }

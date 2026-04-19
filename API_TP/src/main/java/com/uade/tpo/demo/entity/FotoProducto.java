@@ -2,13 +2,15 @@ package com.uade.tpo.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -33,7 +35,7 @@ public class FotoProducto {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    @Lob
     @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.VARBINARY)
     private byte[] imagen;
 }
