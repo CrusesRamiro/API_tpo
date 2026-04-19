@@ -1,0 +1,302 @@
+{
+	"info": {
+		"name": "API_TPO",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:4002",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Usuarios",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/usuarios"
+					}
+				},
+				{
+					"name": "Get User by Email",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/usuarios/Email/:mail",
+						"variable": [
+							{ "key": "mail", "value": "example@mail.com" }
+						]
+					}
+				},
+				{
+					"name": "Get User by Username",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/usuarios/Username/:username",
+						"variable": [
+							{ "key": "username", "value": "johndoe" }
+						]
+					}
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/usuarios",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"secret123\",\n  \"email\": \"john@example.com\",\n  \"nombre\": \"John\",\n  \"apellido\": \"Doe\",\n  \"rolId\": 1\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "Get All Roles",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/roles"
+					}
+				}
+			]
+		},
+		{
+			"name": "Categorias",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/categorias"
+					}
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/categorias/:id",
+						"variable": [
+							{ "key": "id", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/categorias",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Electronica\",\n  \"descripcion\": \"Productos electronicos\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Items",
+			"item": [
+				{
+					"name": "Get All Items",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/items"
+					}
+				},
+				{
+					"name": "Get Item by ID",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/items/:id",
+						"variable": [
+							{ "key": "id", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Create Item",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/items",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Laptop\",\n  \"descripcion\": \"Laptop gamer 16GB RAM\",\n  \"precio\": 1500.00,\n  \"stock\": 10,\n  \"categoriaId\": 1\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Fotos Producto",
+			"item": [
+				{
+					"name": "Upload Photo",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/items/:itemId/fotos",
+						"variable": [
+							{ "key": "itemId", "value": "1" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "archivo",
+									"type": "file",
+									"src": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Photos by Item",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/items/:itemId/fotos",
+						"variable": [
+							{ "key": "itemId", "value": "1" }
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Carrito",
+			"item": [
+				{
+					"name": "Get Cart by User",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/carrito/:usuarioId",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Get Cart Total",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/carrito/:usuarioId/total",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Add Item to Cart",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/carrito/:usuarioId/items",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						],
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idItem\": 1,\n  \"cant\": 2\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Item Quantity",
+					"request": {
+						"method": "PUT",
+						"url": "{{baseUrl}}/carrito/:usuarioId/itemsMod",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						],
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idItem\": 1,\n  \"cant\": 5\n}"
+						}
+					}
+				},
+				{
+					"name": "Remove Item from Cart",
+					"request": {
+						"method": "DELETE",
+						"url": "{{baseUrl}}/carrito/:usuarioId/:itemId",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" },
+							{ "key": "itemId", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "DELETE",
+						"url": "{{baseUrl}}/carrito/:usuarioId",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Pedidos",
+			"item": [
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/pedidos"
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/pedidos/:id",
+						"variable": [
+							{ "key": "id", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Get Orders by User",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/pedidos/usuario/:usuarioId",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						]
+					}
+				},
+				{
+					"name": "Checkout (Create Order from Cart)",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/pedidos/checkout/:usuarioId",
+						"variable": [
+							{ "key": "usuarioId", "value": "1" }
+						]
+					}
+				}
+			]
+		}
+	]
+}
