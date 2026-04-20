@@ -35,6 +35,7 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .csrf(AbstractHttpConfigurer::disable)
+                                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint((request, response, authException) -> writeErrorResponse(
@@ -46,12 +47,20 @@ public class SecurityConfig {
                                                                 HttpServletResponse.SC_FORBIDDEN,
                                                                 "No tenes permisos para acceder a este recurso")))
                                 .authorizeHttpRequests(req -> req
-                                                .requestMatchers("/error", "/actuator/**").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/auth/login", "/usuarios")
+                                                // Recursos tecnicos y utilidades locales
+                                                .requestMatchers("/error", "/actuator/**", "/h2-console/**").permitAll()
+
+                                                // Acceso publico para navegar el catalogo sin autenticacion
+                                                .requestMatchers(HttpMethod.GET, "/items", "/items/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/categorias", "/categorias/**")
                                                 .permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/items/**", "/categorias/**",
-                                                                "/items/*/fotos", "/items/*/fotos/*")
+                                                .requestMatchers(HttpMethod.GET, "/items/*/fotos", "/items/*/fotos/**")
                                                 .permitAll()
+
+                                                // Acceso publico para registro y login
+                                                .requestMatchers(HttpMethod.POST, "/auth/login", "/usuarios").permitAll()
+
+                                                // Solo administradores pueden administrar catalogo y roles
                                                 .requestMatchers("/roles/**").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/usuarios").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/usuarios/email/**", "/usuarios/Email/**",
@@ -66,6 +75,8 @@ public class SecurityConfig {
                                                                 "/items/*/fotos/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/pedidos/*/estado").hasRole("ADMIN")
+
+                                                // El resto requiere usuario autenticado
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthenticationFilter,
                                                 UsernamePasswordAuthenticationFilter.class);
