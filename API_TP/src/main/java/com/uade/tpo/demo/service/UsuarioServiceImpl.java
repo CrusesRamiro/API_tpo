@@ -55,4 +55,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         return usuarioRepository.save(usuario);
     }
+
+    @Override
+    public Usuario update(Long id, String nombre, String apellido, String email) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        usuario.setNombre(nombre);
+        usuario.setApellido(apellido);
+        usuario.setEmail(email);
+        return usuarioRepository.save(usuario);
+    }
 }

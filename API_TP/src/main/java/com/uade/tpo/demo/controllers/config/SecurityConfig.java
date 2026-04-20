@@ -34,13 +34,20 @@ public class SecurityConfig {
                                                                 HttpServletResponse.SC_UNAUTHORIZED,
                                                                 "No autorizado")))
                                 .authorizeHttpRequests(req -> req
+                                                // Públicos
                                                 .requestMatchers("/error", "/actuator/**").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/auth/login", "/usuarios")
-                                                .permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/items/**", "/categorias/**",
-                                                                "/roles/**", "/items/*/fotos")
-                                                .permitAll()
-                                                .anyRequest().authenticated())
+                                                .requestMatchers(HttpMethod.POST, "/auth/login", "/usuarios").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/items/**", "/categorias/**", "/items/*/fotos").permitAll()
+                                                // Flujo de compras (USER y ADMIN)
+                                                .requestMatchers("/carrito/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/pedidos/checkout/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/pedidos/usuario/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                                // Solo ADMIN
+                                                .requestMatchers(HttpMethod.POST, "/items/**", "/categorias/**").hasAuthority("ROLE_ADMIN")
+                                                .requestMatchers("/usuarios/**").hasAuthority("ROLE_ADMIN")
+                                                .requestMatchers("/roles/**").hasAuthority("ROLE_ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/pedidos", "/pedidos/{id}").hasAuthority("ROLE_ADMIN")
+                                                .anyRequest().hasAuthority("ROLE_ADMIN"))
                                 .addFilterBefore(jwtAuthenticationFilter,
                                                 UsernamePasswordAuthenticationFilter.class);
 

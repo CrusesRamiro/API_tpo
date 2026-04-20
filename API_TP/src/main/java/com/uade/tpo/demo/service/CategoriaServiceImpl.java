@@ -33,4 +33,14 @@ public class CategoriaServiceImpl implements CategoriaService {
                 .build();
         return categoriaRepository.save(categoria);
     }
+
+    @Override
+    public Categoria update(Long id, String nombre, String descripcion) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoria no encontrada: " + id));
+
+        categoria.setNombre(nombre);
+        categoria.setDescripcion(descripcion);
+        return categoriaRepository.save(categoria);
+    }
 }

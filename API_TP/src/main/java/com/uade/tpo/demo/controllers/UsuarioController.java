@@ -14,6 +14,7 @@ import com.uade.tpo.demo.service.UsuarioService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -50,6 +51,8 @@ public class UsuarioController {
         return ResponseEntity.created(URI.create("/usuarios/" + nuevo.getId())).body(nuevo);
      }
 
-     //Modificación de usuarios (Corrección de nombres, datos, roles, etc.)
-     
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody UsuarioRequest request) {
+        return ResponseEntity.ok(usuarioService.update(id, request.getNombre(), request.getApellido(), request.getEmail()));
     }
+}

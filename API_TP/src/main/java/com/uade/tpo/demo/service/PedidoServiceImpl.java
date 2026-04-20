@@ -96,6 +96,15 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoGuardado;
     }
 
+    @Override
+    public Pedido actualizarEstado(Long id, EstadoPedido estado) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado: " + id));
+
+        pedido.setEstado(estado);
+        return pedidoRepository.save(pedido);
+    }
+
     private void validarItemCarrito(ItemCarrito itemCarrito) {
         if (itemCarrito.getItem() == null) {
             throw new RuntimeException("El carrito contiene un item invalido");

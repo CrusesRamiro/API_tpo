@@ -10,4 +10,5 @@ public interface UsuarioService {
     Optional<Usuario> getByEmail(String Email);
     Optional<Usuario> getByUsername(String Username);
     Usuario create(String username, String password, String nombre, String apellido, String email, Long rolId);
+    Usuario update(Long id, String nombre, String apellido, String email);
 }

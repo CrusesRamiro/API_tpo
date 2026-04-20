@@ -8,50 +8,161 @@
 			"key": "baseUrl",
 			"value": "http://localhost:4002",
 			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tokenAdmin",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
 		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login como ADMIN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.token) {",
+									"    pm.collectionVariables.set('tokenAdmin', json.token);",
+									"    pm.collectionVariables.set('token', json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": "{{baseUrl}}/auth/login",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Login como USER",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.token) {",
+									"    pm.collectionVariables.set('token', json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": "{{baseUrl}}/auth/login",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"user123\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
 			"name": "Usuarios",
 			"item": [
 				{
-					"name": "Get All Users",
+					"name": "Get All Users (ADMIN)",
 					"request": {
 						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
 						"url": "{{baseUrl}}/usuarios"
 					}
 				},
 				{
-					"name": "Get User by Email",
+					"name": "Get User by Email (ADMIN)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/usuarios/Email/:mail",
-						"variable": [
-							{ "key": "mail", "value": "example@mail.com" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/Email/:mail",
+							"host": ["{{baseUrl}}"],
+							"path": ["usuarios", "Email", ":mail"],
+							"variable": [
+								{ "key": "mail", "value": "example@mail.com" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Get User by Username",
+					"name": "Get User by Username (ADMIN)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/usuarios/Username/:username",
-						"variable": [
-							{ "key": "username", "value": "johndoe" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/Username/:username",
+							"host": ["{{baseUrl}}"],
+							"path": ["usuarios", "Username", ":username"],
+							"variable": [
+								{ "key": "username", "value": "johndoe" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Create User",
+					"name": "Create User (publico - registro)",
 					"request": {
 						"method": "POST",
-						"url": "{{baseUrl}}/usuarios",
 						"header": [
 							{ "key": "Content-Type", "value": "application/json" }
 						],
+						"url": "{{baseUrl}}/usuarios",
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"secret123\",\n  \"email\": \"john@example.com\",\n  \"nombre\": \"John\",\n  \"apellido\": \"Doe\",\n  \"rolId\": 1\n}"
+							"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"user123\",\n  \"email\": \"user1@example.com\",\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"rolId\": 2\n}"
+						}
+					}
+				},
+				{
+					"name": "Update User (ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["usuarios", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Juan Carlos\",\n  \"apellido\": \"Perez\",\n  \"email\": \"juancarlos@example.com\"\n}"
 						}
 					}
 				}
@@ -61,9 +172,12 @@
 			"name": "Roles",
 			"item": [
 				{
-					"name": "Get All Roles",
+					"name": "Get All Roles (ADMIN)",
 					"request": {
 						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
 						"url": "{{baseUrl}}/roles"
 					}
 				}
@@ -73,33 +187,60 @@
 			"name": "Categorias",
 			"item": [
 				{
-					"name": "Get All Categories",
+					"name": "Get All Categories (publico)",
 					"request": {
 						"method": "GET",
 						"url": "{{baseUrl}}/categorias"
 					}
 				},
 				{
-					"name": "Get Category by ID",
+					"name": "Get Category by ID (publico)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/categorias/:id",
-						"variable": [
-							{ "key": "id", "value": "1" }
-						]
+						"url": {
+							"raw": "{{baseUrl}}/categorias/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["categorias", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Create Category",
+					"name": "Create Category (ADMIN)",
 					"request": {
 						"method": "POST",
-						"url": "{{baseUrl}}/categorias",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
 						],
+						"url": "{{baseUrl}}/categorias",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"nombre\": \"Electronica\",\n  \"descripcion\": \"Productos electronicos\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Category (ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/categorias/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["categorias", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Electronica y Computacion\",\n  \"descripcion\": \"Productos electronicos y computacion\"\n}"
 						}
 					}
 				}
@@ -109,33 +250,77 @@
 			"name": "Items",
 			"item": [
 				{
-					"name": "Get All Items",
+					"name": "Get All Items (publico)",
 					"request": {
 						"method": "GET",
 						"url": "{{baseUrl}}/items"
 					}
 				},
 				{
-					"name": "Get Item by ID",
+					"name": "Get Item by ID (publico)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/items/:id",
-						"variable": [
-							{ "key": "id", "value": "1" }
-						]
+						"url": {
+							"raw": "{{baseUrl}}/items/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["items", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Create Item",
+					"name": "Create Item (ADMIN)",
 					"request": {
 						"method": "POST",
-						"url": "{{baseUrl}}/items",
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
 						],
+						"url": "{{baseUrl}}/items",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"nombre\": \"Laptop\",\n  \"descripcion\": \"Laptop gamer 16GB RAM\",\n  \"precio\": 1500.00,\n  \"stock\": 10,\n  \"categoriaId\": 1\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Item (ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/items/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["items", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Laptop Pro\",\n  \"descripcion\": \"Laptop gamer 32GB RAM\",\n  \"precio\": 2000.00,\n  \"stock\": 5,\n  \"categoriaId\": 1\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Item (ADMIN)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/items/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["items", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
 						}
 					}
 				}
@@ -145,13 +330,20 @@
 			"name": "Fotos Producto",
 			"item": [
 				{
-					"name": "Upload Photo",
+					"name": "Upload Photo (ADMIN)",
 					"request": {
 						"method": "POST",
-						"url": "{{baseUrl}}/items/:itemId/fotos",
-						"variable": [
-							{ "key": "itemId", "value": "1" }
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
 						],
+						"url": {
+							"raw": "{{baseUrl}}/items/:itemId/fotos",
+							"host": ["{{baseUrl}}"],
+							"path": ["items", ":itemId", "fotos"],
+							"variable": [
+								{ "key": "itemId", "value": "1" }
+							]
+						},
 						"body": {
 							"mode": "formdata",
 							"formdata": [
@@ -165,13 +357,17 @@
 					}
 				},
 				{
-					"name": "Get Photos by Item",
+					"name": "Get Photos by Item (publico)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/items/:itemId/fotos",
-						"variable": [
-							{ "key": "itemId", "value": "1" }
-						]
+						"url": {
+							"raw": "{{baseUrl}}/items/:itemId/fotos",
+							"host": ["{{baseUrl}}"],
+							"path": ["items", ":itemId", "fotos"],
+							"variable": [
+								{ "key": "itemId", "value": "1" }
+							]
+						}
 					}
 				}
 			]
@@ -180,36 +376,55 @@
 			"name": "Carrito",
 			"item": [
 				{
-					"name": "Get Cart by User",
+					"name": "Get Cart by User (USER/ADMIN)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/carrito/:usuarioId",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/carrito/:usuarioId",
+							"host": ["{{baseUrl}}"],
+							"path": ["carrito", ":usuarioId"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Get Cart Total",
+					"name": "Get Cart Total (USER/ADMIN)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/carrito/:usuarioId/total",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/carrito/:usuarioId/total",
+							"host": ["{{baseUrl}}"],
+							"path": ["carrito", ":usuarioId", "total"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Add Item to Cart",
+					"name": "Add Item to Cart (USER/ADMIN)",
 					"request": {
 						"method": "POST",
-						"url": "{{baseUrl}}/carrito/:usuarioId/items",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						],
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
+						"url": {
+							"raw": "{{baseUrl}}/carrito/:usuarioId/items",
+							"host": ["{{baseUrl}}"],
+							"path": ["carrito", ":usuarioId", "items"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						},
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"idItem\": 1,\n  \"cant\": 2\n}"
@@ -217,16 +432,21 @@
 					}
 				},
 				{
-					"name": "Update Item Quantity",
+					"name": "Update Item Quantity (USER/ADMIN)",
 					"request": {
 						"method": "PUT",
-						"url": "{{baseUrl}}/carrito/:usuarioId/itemsMod",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						],
 						"header": [
-							{ "key": "Content-Type", "value": "application/json" }
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
 						],
+						"url": {
+							"raw": "{{baseUrl}}/carrito/:usuarioId/itemsMod",
+							"host": ["{{baseUrl}}"],
+							"path": ["carrito", ":usuarioId", "itemsMod"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						},
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"idItem\": 1,\n  \"cant\": 5\n}"
@@ -234,24 +454,38 @@
 					}
 				},
 				{
-					"name": "Remove Item from Cart",
+					"name": "Remove Item from Cart (USER/ADMIN)",
 					"request": {
 						"method": "DELETE",
-						"url": "{{baseUrl}}/carrito/:usuarioId/:itemId",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" },
-							{ "key": "itemId", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/carrito/:usuarioId/:itemId",
+							"host": ["{{baseUrl}}"],
+							"path": ["carrito", ":usuarioId", ":itemId"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" },
+								{ "key": "itemId", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Clear Cart",
+					"name": "Clear Cart (USER/ADMIN)",
 					"request": {
 						"method": "DELETE",
-						"url": "{{baseUrl}}/carrito/:usuarioId",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/carrito/:usuarioId",
+							"host": ["{{baseUrl}}"],
+							"path": ["carrito", ":usuarioId"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						}
 					}
 				}
 			]
@@ -260,40 +494,86 @@
 			"name": "Pedidos",
 			"item": [
 				{
-					"name": "Get All Orders",
+					"name": "Get All Orders (ADMIN)",
 					"request": {
 						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
 						"url": "{{baseUrl}}/pedidos"
 					}
 				},
 				{
-					"name": "Get Order by ID",
+					"name": "Get Order by ID (ADMIN)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/pedidos/:id",
-						"variable": [
-							{ "key": "id", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pedidos/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["pedidos", ":id"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Get Orders by User",
+					"name": "Get Orders by User (USER/ADMIN)",
 					"request": {
 						"method": "GET",
-						"url": "{{baseUrl}}/pedidos/usuario/:usuarioId",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pedidos/usuario/:usuarioId",
+							"host": ["{{baseUrl}}"],
+							"path": ["pedidos", "usuario", ":usuarioId"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						}
 					}
 				},
 				{
-					"name": "Checkout (Create Order from Cart)",
+					"name": "Checkout (USER/ADMIN)",
 					"request": {
 						"method": "POST",
-						"url": "{{baseUrl}}/pedidos/checkout/:usuarioId",
-						"variable": [
-							{ "key": "usuarioId", "value": "1" }
-						]
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pedidos/checkout/:usuarioId",
+							"host": ["{{baseUrl}}"],
+							"path": ["pedidos", "checkout", ":usuarioId"],
+							"variable": [
+								{ "key": "usuarioId", "value": "1" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Order Status (ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pedidos/:id/estado",
+							"host": ["{{baseUrl}}"],
+							"path": ["pedidos", ":id", "estado"],
+							"variable": [
+								{ "key": "id", "value": "1" }
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"estado\": \"CONFIRMADO\"\n}"
+						}
 					}
 				}
 			]

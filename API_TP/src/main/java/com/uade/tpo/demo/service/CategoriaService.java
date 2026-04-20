@@ -9,4 +9,5 @@ public interface CategoriaService {
     List<Categoria> getAll();
     Optional<Categoria> getById(Long id);
     Categoria create(String nombre, String descripcion);
+    Categoria update(Long id, String nombre, String descripcion);
 }

@@ -44,4 +44,28 @@ public class ItemServiceImpl implements ItemService {
                 .build();
         return itemRepository.save(item);
     }
+
+    @Override
+    public Item update(Long id, String nombre, String descripcion, Double precio, Integer stock, Long categoriaId) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Item no encontrado: " + id));
+
+        Categoria categoria = categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new RuntimeException("Categoria no encontrada: " + categoriaId));
+
+        item.setNombre(nombre);
+        item.setDescripcion(descripcion);
+        item.setPrecio(precio);
+        item.setStock(stock);
+        item.setCategoria(categoria);
+        return itemRepository.save(item);
+    }
+
+    @Override
+    public void delete(Long id) {
+        if (!itemRepository.existsById(id)) {
+            throw new RuntimeException("Item no encontrado: " + id);
+        }
+        itemRepository.deleteById(id);
+    }
 }
