@@ -158,7 +158,7 @@
 							"path": ["usuarios", ":id"],
 							"variable": [
 								{ "key": "id", "value": "1" }
-							]
+							] 
 						},
 						"body": {
 							"mode": "raw",
