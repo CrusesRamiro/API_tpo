@@ -17,7 +17,15 @@ export default function ProductCard({ product, showToast }) {
   return (
     <div className="product-card" onClick={() => navigate(`/detalle/${product.id}`)}>
       <div className="product-img">
-        <div className="product-img-placeholder">{product.emoji}</div>
+        {product.imagen ? (
+          <img
+            src={product.imagen}
+            alt={product.nombre}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+          ) : (
+            <div className="product-img-placeholder">{product.emoji}</div>
+          )}
         {product.nuevo && <span className="product-badge">Nuevo</span>}
       </div>
       <div className="product-info">
