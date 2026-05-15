@@ -24,14 +24,20 @@ export default function DetallePage({ showToast }) {
 
   function handleAddToCart() {
     addToCart(product, qty)
-    showToast(`${product.nombre} × ${qty} agregado al carrito`)
+    showToast(`${product.nombre} x ${qty} agregado al carrito`)
   }
 
   return (
     <div className="detail-page">
       {/* GALLERY */}
       <div>
-        <div className="detail-gallery">{product.emoji}</div>
+        <div className="detail-gallery">
+        {product.imagen ? (
+          <img src={product.imagen} alt={product.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'var(--radius)' }} />
+        ) : (
+          product.emoji
+        )}
+        </div>
       </div>
 
       {/* INFO */}
@@ -48,7 +54,7 @@ export default function DetallePage({ showToast }) {
         <h1 className="detail-title">{product.nombre}</h1>
 
         {product.nuevo && (
-          <span style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff', fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '20px' }}>
+          <span style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff', fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '20px', alignSelf: 'flex-start' }}>
             Nuevo
           </span>
         )}

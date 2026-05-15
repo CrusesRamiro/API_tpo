@@ -53,7 +53,13 @@ export default function CarritoPage({ showToast }) {
             const cat = CATEGORIES.find(c => c.id === item.categoriaId)
             return (
               <div className="cart-item" key={item.id}>
-                <div className="cart-item-img">{item.emoji}</div>
+                  <div className="cart-item-img">
+                  {item.imagen ? (
+                    <img src={item.imagen} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                  ) : (
+                    item.emoji
+                  )}
+                  </div>
                 <div className="cart-item-info">
                   <div className="cart-item-name">{item.nombre}</div>
                   <div className="cart-item-cat">{cat?.nombre}</div>
