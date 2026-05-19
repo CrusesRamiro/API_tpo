@@ -16,14 +16,13 @@ export default function HomePage({ showToast }) {
     <>
       {/* HERO */}
       <div className="hero" style={{
-        backgroundImage: 'url(/record-shop-interior-2.jpg)',
+        backgroundImage: 'url(/record-shop-interior-2-blur.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         position: 'relative',
       }}>
       <div style={{
         position: 'absolute', inset: 0,
-        backdropFilter: 'blur(7px)',
         backgroundColor: 'rgba(0,0,0,0.45)',
       }} />
       <div className="hero-eyebrow" style={{ position: 'relative', zIndex: 1 }}>Nuevas llegadas 2026</div>

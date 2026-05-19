@@ -188,3 +188,88 @@ footer strong { color: rgba(255,255,255,0.85); }
   .form-row { grid-template-columns: 1fr; }
   .nav-links { display: none; }
 }
+
+/* ── DARK MODE BUTTON ── */
+/* From Uiverse.io by ami-hp */ 
+.darkThemeBtn * {
+  transition: all 0.3s;
+}
+.darkThemeBtn input {
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}
+.darkThemeBtn {
+  display: flex;
+  align-items: center;
+}
+.darkThemeBtn label {
+  background: #fff;
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+.darkThemeBtn label:active {
+  border-radius: 50%;
+}
+.darkThemeBtn label svg {
+  position: absolute;
+  width: 16px;
+  transition: 0.3s;
+  z-index: 1;
+  fill: none;
+  stroke: #000;
+  stroke-width: 2;
+}
+.darkThemeBtn label svg.sun {
+  width: 18px;
+  opacity: 0;
+  stroke: #fff;
+  fill: none;
+}
+.darkThemeBtn label svg.moon {
+  opacity: 1;
+}
+.darkThemeBtn input:checked + label {
+  background: #f5a623;
+}
+.darkThemeBtn input:checked + label svg.sun {
+  opacity: 1;
+}
+.darkThemeBtn input:checked + label svg.moon {
+  opacity: 0;
+}
+.darkThemeBtn input:checked ~ span {
+  background-color: #16174b;
+}
+
+/* ── DARK MODE ── */
+body.dark {
+  --bg: #0f0f13;
+  --surface: #1a1a2e;
+  --surface2: #16213e;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f0f5;
+  --text2: #a0a0b5;
+  --text3: #606075;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+body.dark .add-to-cart {
+  background: #f0f0f5;
+  color: var(--brand);
+}
+body.dark .add-to-cart svg {
+  stroke: var(--brand);
+}
+body.dark .add-to-cart:hover {
+  background: var(--accent);
+}
+body.dark .add-to-cart:hover svg {
+  stroke: #fff;
+}
