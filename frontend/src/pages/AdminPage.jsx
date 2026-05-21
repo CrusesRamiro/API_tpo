@@ -258,7 +258,7 @@ export default function AdminPage({ showToast }) {
                         : '—'}
                     </td>
                     <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                      <button style={{ background: 'var(--surface2)', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem' }}
+                      <button style={{ background: '#e8e8f0', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', color: '#1a1a2e' }}
                         onClick={() => { setFormProd({ ...p }); setEditProd(p.id); setNuevoProd(false) }}>
                         Editar
                       </button>
@@ -330,7 +330,7 @@ export default function AdminPage({ showToast }) {
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{c.nombre}</td>
                     <td style={{ ...tdStyle, color: 'var(--text2)' }}>{c.descripcion}</td>
                     <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                      <button style={{ background: 'var(--surface2)', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem' }}
+                      <button style={{ background: '#e8e8f0', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', color: '#1a1a2e' }}
                         onClick={() => { setFormCat({ ...c }); setEditCat(c.id); setNuevaCat(false) }}>
                         Editar
                       </button>
@@ -419,7 +419,7 @@ export default function AdminPage({ showToast }) {
                         </span>
                       </td>
                       <td style={tdStyle}>
-                        <button style={{ background: 'var(--surface2)', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem' }}
+                        <button style={{ background: '#e8e8f0', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', color: '#1a1a2e' }}
                           onClick={() => setDetallePedido(detallePedido === p.id ? null : p.id)}>
                           {detallePedido === p.id ? 'Ocultar' : 'Ver detalle'}
                         </button>
@@ -519,7 +519,7 @@ export default function AdminPage({ showToast }) {
                       }}>{u.rol}</span>
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <button style={{ background: 'var(--surface2)', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem' }}
+                      <button style={{ background: '#e8e8f0', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', color: '#1a1a2e' }}
                         onClick={() => { setFormUser({ ...u }); setEditUser(u.id) }}>
                         Editar
                       </button>
