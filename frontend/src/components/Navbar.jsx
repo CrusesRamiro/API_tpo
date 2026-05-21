@@ -70,6 +70,12 @@ export default function Navbar({ showToast }) {
             Ingresar
           </button>
         )}
+
+        {isLoggedIn && user?.rol === 'ROLE_ADMIN' && (
+          <NavLink to="/admin" style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem', padding: '0.5rem 0.85rem', borderRadius: '8px' }}>
+            Admin
+          </NavLink>
+        )}
       </div>
     </nav>
   )

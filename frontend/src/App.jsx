@@ -13,6 +13,8 @@ import ContactoPage from './pages/ContactoPage'
 import PedidosPage from './pages/PedidosPage'
 import LoginPage from './pages/LoginPage'
 import RegistroPage from './pages/RegistroPage'
+import PagoPage from './pages/PagoPage'
+import AdminPage from './pages/AdminPage'
 
 function AppContent() {
   const { toast, showToast } = useToast()
@@ -30,6 +32,8 @@ function AppContent() {
           <Route path="/pedidos"    element={<PedidosPage />} />
           <Route path="/login"      element={<LoginPage     showToast={showToast} />} />
           <Route path="/registro"   element={<RegistroPage  showToast={showToast} />} />
+          <Route path="/pago" element={<PagoPage showToast={showToast} />} />
+          <Route path="/admin" element={<AdminPage showToast={showToast} />} />
         </Routes>
       </main>
       <Footer />

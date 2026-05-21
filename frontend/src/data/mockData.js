@@ -6,16 +6,16 @@ export const CATEGORIES = [
 ]
 
 export const PRODUCTS = [
-  { id: 1, nombre: 'The Dark Side of the Moon', descripcion: 'Pink Floyd ‧ 1973', precio: 100000.00, stock: 8, categoriaId: 1, emoji: '💽', imagen: '/TheDarkSideoftheMoon.png', nuevo: true },
-  { id: 2, nombre: 'Led Zeppelin IV', descripcion: 'Led Zeppelin ‧ 1971', precio: 100000.00, stock: 15, categoriaId: 1, emoji: '💽', imagen: '/LedZeppelinIV.jpg', nuevo: false },
-  { id: 3, nombre: 'Nevermind', descripcion: 'Nirvana ‧ 1991', precio: 100000.00, stock: 12, categoriaId: 1, emoji: '💽', imagen: '/Nevermind.jpg', nuevo: true },
-  { id: 4, nombre: 'Back In Black', descripcion: 'AC/DC ‧ 1980', precio: 100000.00, stock: 4, categoriaId: 1, emoji: '💽', imagen: '/BackinBlack.png', nuevo: false },
-  { id: 5, nombre: 'Thriller', descripcion: 'Michael Jackson ‧ 1982', precio: 100000.00, stock: 50, categoriaId: 2, emoji: '💽', imagen: '/Thriller.png', nuevo: false },
-  { id: 6, nombre: 'Future Nostalgia', descripcion: 'Dua Lipa ‧ 2020', precio: 100000.00, stock: 20, categoriaId: 2, emoji: '💽', imagen: '/FutureNostalgia.png', nuevo: true },
-  { id: 7, nombre: 'The Four Seasons', descripcion: 'Antonio Vivaldi ‧ 1723', precio: 100000.00, stock: 30, categoriaId: 3, emoji: '💽', imagen: '/TheFourSeasons.jpg', nuevo: false },
-  { id: 8, nombre: 'Symphony No. 9', descripcion: 'Ludwig van Beethoven ‧ 1824', precio: 100000.00, stock: 7, categoriaId: 3, emoji: '💽', imagen: '/SymphonyNo9.jpg', nuevo: false },
-  { id: 9, nombre: 'Kind of Blue', descripcion: 'Miles Davis ‧ 1959', precio: 100000.00, stock: 25, categoriaId: 4, emoji: '💽', imagen: '/KindofBlue.jpg', nuevo: false },
-  { id: 10, nombre: 'Time Out', descripcion: 'The Dave Brubeck Quartet ‧ 1959', precio: 100000.00, stock: 10, categoriaId: 4, emoji: '💽', imagen: '/TimeOut.jpg', nuevo: true },
+  { id: 1, nombre: 'The Dark Side of the Moon', descripcion: 'Pink Floyd ‧ 1973', precio: 100000.00, stock: 8, categoriaId: 1, emoji: '💽', imagen: '/TheDarkSideoftheMoon.png', nuevo: true, descuento: 20 },
+  { id: 2, nombre: 'Led Zeppelin IV', descripcion: 'Led Zeppelin ‧ 1971', precio: 100000.00, stock: 15, categoriaId: 1, emoji: '💽', imagen: '/LedZeppelinIV.jpg', nuevo: false, descuento: 20 },
+  { id: 3, nombre: 'Nevermind', descripcion: 'Nirvana ‧ 1991', precio: 100000.00, stock: 12, categoriaId: 1, emoji: '💽', imagen: '/Nevermind.jpg', nuevo: true, descuento: 20 },
+  { id: 4, nombre: 'Back In Black', descripcion: 'AC/DC ‧ 1980', precio: 100000.00, stock: 4, categoriaId: 1, emoji: '💽', imagen: '/BackinBlack.png', nuevo: false, descuento: 20 },
+  { id: 5, nombre: 'Thriller', descripcion: 'Michael Jackson ‧ 1982', precio: 100000.00, stock: 50, categoriaId: 2, emoji: '💽', imagen: '/Thriller.png', nuevo: false, descuento: 20 },
+  { id: 6, nombre: 'Future Nostalgia', descripcion: 'Dua Lipa ‧ 2020', precio: 100000.00, stock: 20, categoriaId: 2, emoji: '💽', imagen: '/FutureNostalgia.png', nuevo: true, descuento: 20 },
+  { id: 7, nombre: 'The Four Seasons', descripcion: 'Antonio Vivaldi ‧ 1723', precio: 100000.00, stock: 30, categoriaId: 3, emoji: '💽', imagen: '/TheFourSeasons.jpg', nuevo: false, descuento: 20 },
+  { id: 8, nombre: 'Symphony No. 9', descripcion: 'Ludwig van Beethoven ‧ 1824', precio: 100000.00, stock: 7, categoriaId: 3, emoji: '💽', imagen: '/SymphonyNo9.jpg', nuevo: false, descuento: 20 },
+  { id: 9, nombre: 'Kind of Blue', descripcion: 'Miles Davis ‧ 1959', precio: 100000.00, stock: 25, categoriaId: 4, emoji: '💽', imagen: '/KindofBlue.jpg', nuevo: false, descuento: 20 },
+  { id: 10, nombre: 'Time Out', descripcion: 'The Dave Brubeck Quartet ‧ 1959', precio: 100000.00, stock: 10, categoriaId: 4, emoji: '💽', imagen: '/TimeOut.jpg', nuevo: true, descuento: 20 },
 ]
 
 export const ORDERS_MOCK = [
@@ -38,3 +38,8 @@ export const ORDERS_MOCK = [
     ],
   },
 ]
+
+export function precioFinal(product) {
+  if (!product.descuento) return product.precio
+  return product.precio * (1 - product.descuento / 100)
+}

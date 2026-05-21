@@ -13,13 +13,8 @@ export default function CarritoPage({ showToast }) {
   const total = subtotal + envio
 
   function handleCheckout() {
-    if (!isLoggedIn) {
-      navigate('/login')
-      return
-    }
-    clearCart()
-    showToast('¡Pedido realizado con éxito!')
-    navigate('/pedidos')
+  if (!isLoggedIn) { navigate('/login'); return }
+  navigate('/pago')
   }
 
   if (cart.length === 0) {
