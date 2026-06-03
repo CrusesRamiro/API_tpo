@@ -86,7 +86,7 @@ export default function DetallePage({ showToast }) {
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
           <p style={{ fontSize: '0.82rem', color: 'var(--text3)', lineHeight: 1.6 }}>
-            ✓ Envío gratis a partir de $100 · ✓ Devolución gratuita · ✓ Garantía 12 meses
+            Incluye envío gratis a partir de $100, devolución gratuita, y garantía de 12 meses
           </p>
         </div>
       </div>
