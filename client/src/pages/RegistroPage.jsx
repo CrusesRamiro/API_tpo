@@ -29,7 +29,7 @@ export default function RegistroPage({ showToast }) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    // Mock register — reemplazar con POST /usuarios
+    // Mock register — aca reemplazar con POST /usuarios cuando hagamos integracion backend
     login({ id: 99, username: form.username, rol: 'ROLE_USER' })
     showToast(`Cuenta creada. Bienvenido, ${form.nombre}!`)
     navigate('/')

@@ -78,7 +78,7 @@ export default function CarritoPage({ showToast }) {
           <h3>Resumen del pedido</h3>
           {cart.map(item => (
             <div className="summary-row" key={item.id}>
-              <span>{item.nombre} × {item.cantidad}</span>
+              <span>{item.nombre} x {item.cantidad}</span>
               <span>${(item.precio * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
           ))}

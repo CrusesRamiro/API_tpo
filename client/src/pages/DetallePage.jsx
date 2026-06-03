@@ -72,7 +72,7 @@ export default function DetallePage({ showToast }) {
           </span>
         </div>
 
-        {/* QUANTITY + ADD TO CART */}
+        {/* CANTIDAD + ADD TO CART */}
         <div className="qty-row">
           <div className="qty-control">
             <button className="qty-btn" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>

@@ -16,27 +16,27 @@ export default function AdminPage({ showToast }) {
   const navigate = useNavigate()
   const [tab, setTab] = useState('Productos')
 
-  // ── PRODUCTOS ──
+  // PRODUCTOS
   const [productos, setProductos] = useState(PRODUCTS)
   const [editProd, setEditProd] = useState(null)
   const [nuevoProd, setNuevoProd] = useState(false)
   const [formProd, setFormProd] = useState({})
-  const [fotosModal, setFotasModal] = useState(null) // id del producto con modal abierto
-  const [fotasMock, setFotosMock] = useState({}) // { [productoId]: [base64, ...] }
+  const [fotosModal, setFotosModal] = useState(null)
+  const [fotosMock, setFotosMock] = useState({})
 
-  // ── CATEGORÍAS ──
+  // CATEGORÍAS
   const [categorias, setCategorias] = useState(CATEGORIES)
   const [editCat, setEditCat] = useState(null)
   const [nuevaCat, setNuevaCat] = useState(false)
   const [formCat, setFormCat] = useState({})
 
-  // ── PEDIDOS ──
+  // PEDIDOS
   const [pedidos, setPedidos] = useState(ORDERS_MOCK)
   const [buscarIdPedido, setBuscarIdPedido] = useState('')
   const [pedidoEncontrado, setPedidoEncontrado] = useState(null)
   const [detallePedido, setDetallePedido] = useState(null)
 
-  // ── USUARIOS ──
+  // USUARIOS
   const [usuarios, setUsuarios] = useState(USUARIOS_MOCK)
   const [editUser, setEditUser] = useState(null)
   const [formUser, setFormUser] = useState({})
@@ -104,7 +104,7 @@ export default function AdminPage({ showToast }) {
 
       <div className="section">
 
-        {/* ══ PRODUCTOS ══ */}
+        {/* PRODUCTOS */}
         {tab === 'Productos' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
@@ -151,17 +151,17 @@ export default function AdminPage({ showToast }) {
                 </div>
                 </div>
 
-    {/* ── FOTOS (solo en editar, no en nuevo) ── */}
+    {/* FOTOS (solo en editar, no en nuevo) */}
     {(
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
         <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Fotos del producto</label>
 
         {/* FOTOS EXISTENTES */}
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-          {(fotasMock[editProd] || []).length === 0 && (
+          {(fotosMock[editProd] || []).length === 0 && (
             <p style={{ color: 'var(--text3)', fontSize: '0.85rem' }}>No hay fotos cargadas.</p>
           )}
-          {(fotasMock[editProd] || []).map((src, i) => (
+          {(fotosMock[editProd] || []).map((src, i) => (
             <div key={i} style={{ position: 'relative' }}>
               <img src={src} alt={`foto-${i}`} style={{ width: '90px', height: '90px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }} />
               <button
@@ -204,15 +204,15 @@ export default function AdminPage({ showToast }) {
                     Fotos — {productos.find(p => p.id === fotosModal)?.nombre}
                   </h3>
                   <button style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text3)' }}
-                    onClick={() => setFotasModal(null)}>✕</button>
+                    onClick={() => setFotosModal(null)}>✕</button>
                 </div>
 
                 {/* FOTOS EXISTENTES */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-                  {(fotasMock[fotosModal] || []).length === 0 && (
+                  {(fotosMock[fotosModal] || []).length === 0 && (
                     <p style={{ color: 'var(--text3)', fontSize: '0.88rem' }}>No hay fotos cargadas.</p>
                   )}
-                  {(fotasMock[fotosModal] || []).map((src, i) => (
+                  {(fotosMock[fotosModal] || []).map((src, i) => (
                     <div key={i} style={{ position: 'relative' }}>
                       <img src={src} alt={`foto-${i}`} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }} />
                       <button
@@ -274,7 +274,7 @@ export default function AdminPage({ showToast }) {
           </div>
         )}
 
-        {/* ══ CATEGORÍAS ══ */}
+        {/* CATEGORÍAS */}
         {tab === 'Categorías' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
@@ -342,7 +342,7 @@ export default function AdminPage({ showToast }) {
           </div>
         )}
 
-        {/* ══ PEDIDOS ══ */}
+        {/* PEDIDOS */}
         {tab === 'Pedidos' && (
           <div>
             {/* BUSCAR POR ID */}
@@ -463,7 +463,7 @@ export default function AdminPage({ showToast }) {
           </div>
         )}
 
-        {/* ══ USUARIOS ══ */}
+        {/* USUARIOS */}
         {tab === 'Usuarios' && (
           <div>
             {editUser && (

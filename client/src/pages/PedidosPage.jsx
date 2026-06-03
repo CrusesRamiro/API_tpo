@@ -32,7 +32,7 @@ export default function PedidosPage() {
             <div className="order-body">
               {order.detalle.map((d, i) => (
                 <div className="order-detail-item" key={i}>
-                  <span>{d.item.nombre} × {d.cantidad}</span>
+                  <span>{d.item.nombre} x {d.cantidad}</span>
                   <span>${(d.item.precio * d.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                 </div>
               ))}

@@ -48,7 +48,7 @@ export default function HomePage({ showToast }) {
         </div>
       </div>
 
-      {/* CATEGORIES TABS */}
+      {/* CATEGORIAS TABS */}
       <div className="categories-bar">
         <button className={`cat-tab ${activeCat === null ? 'active' : ''}`} onClick={() => setActiveCat(null)}>
           Todos
@@ -64,7 +64,7 @@ export default function HomePage({ showToast }) {
         ))}
       </div>
 
-      {/* CATALOGUE */}
+      {/* CATALOGO */}
       <div className="section">
         <div className="section-header">
           <h2 className="section-title">

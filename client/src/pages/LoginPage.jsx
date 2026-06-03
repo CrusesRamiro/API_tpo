@@ -12,7 +12,7 @@ export default function LoginPage({ showToast }) {
     e.preventDefault()
     if (!form.username || !form.password) { setError('Completá todos los campos.'); return }
 
-    // Mock login — reemplazar con llamada real a /auth/login
+    // Mock login - aca reemplazar con llamada real cuando hagamos integracion con backend
     if (form.username === 'admin' && form.password === 'admin123') {
       login({ id: 1, username: 'admin', rol: 'ROLE_ADMIN' })
       showToast('Bienvenido, admin')
@@ -59,7 +59,7 @@ export default function LoginPage({ showToast }) {
           </button>
         </form>
 
-        <p className="auth-hint">Demo: admin/admin123 · user1/user123</p>
+        <p className="auth-hint">Demo: admin/admin123 - user1/user123</p>
         <div className="auth-switch">
           ¿No tenés cuenta? <Link to="/registro">Registrate</Link>
         </div>
