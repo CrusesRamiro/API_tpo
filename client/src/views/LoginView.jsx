@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-export default function LoginPage({ showToast }) {
+export default function LoginView({ showToast }) {
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
   const { login } = useAuth()

@@ -11,7 +11,7 @@ const USUARIOS_MOCK = [
   { id: 3, username: 'maria99', nombre: 'María', apellido: 'González', email: 'maria@mail.com', rol: 'ROLE_USER' },
 ]
 
-export default function AdminPage({ showToast }) {
+export default function AdminView({ showToast }) {
   const { isLoggedIn, user } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState('Productos')

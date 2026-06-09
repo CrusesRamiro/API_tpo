@@ -9,7 +9,7 @@ const METODOS = [
   { id: 'efectivo', label: 'Efectivo / Rapipago', icono: '💵' },
 ]
 
-export default function PagoPage({ showToast }) {
+export default function PagoView({ showToast }) {
   const { cart, clearCart } = useCart()
   const navigate = useNavigate()
   const [metodo, setMetodo] = useState('tarjeta')
@@ -51,6 +51,14 @@ export default function PagoPage({ showToast }) {
     return null
   }
 
+  function detectarTarjeta(numero) {
+  const n = numero.replace(/\s/g, '')
+  if (n.startsWith('4')) return 'Visa'
+  if (/^5[1-5]/.test(n) || /^2(2[2-9][1-9]|[3-6]\d{2}|7[01]\d|720)/.test(n)) return 'Mastercard'
+  return null
+  }
+
+const tipoTarjeta = detectarTarjeta(form.numero)
   return (
     <>
       <div className="page-header">
@@ -93,14 +101,31 @@ export default function PagoPage({ showToast }) {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label">Número de tarjeta</label>
-                <input className="form-input" placeholder="1234 5678 9012 3456" maxLength={19}
-                  value={form.numero}
-                  onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 16)
-                    const fmt = val.match(/.{1,4}/g)?.join(' ') || val
-                    handleChange('numero', fmt)
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    className="form-input"
+                    placeholder="1234 5678 9012 3456"
+                    maxLength={19}
+                    value={form.numero}
+                    style={{ paddingRight: tipoTarjeta ? '110px' : '1rem' }}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 16)
+                      const fmt = val.match(/.{1,4}/g)?.join(' ') || val
+                      handleChange('numero', fmt)
+                    }}
+                  />
+                  {tipoTarjeta && (
+                    <img
+                      src={tipoTarjeta === 'Visa' ? '/visa-logo.svg' : '/mastercard-logo.svg'}
+                      alt={tipoTarjeta}
+                      style={{
+                        position: 'absolute', right: '0.75rem', top: '50%',
+                        transform: 'translateY(-50%)',
+                        height: '24px', width: 'auto'
+                      }}
+                    />
+                  )}
+                </div>
                 {errors.numero && <span className="field-error">{errors.numero}</span>}
               </div>
               <div className="form-group">
@@ -112,19 +137,32 @@ export default function PagoPage({ showToast }) {
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Vencimiento</label>
-                  <input className="form-input" placeholder="MM/AA" maxLength={5}
+                  <input
+                    className="form-input"
+                    placeholder="MM/AA"
+                    maxLength={5}
                     value={form.vencimiento}
                     onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 4)
-                      const fmt = val.length > 2 ? val.slice(0,2) + '/' + val.slice(2) : val
-                      handleChange('vencimiento', fmt)
-                    }}
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4)
+
+                    if (val.length >= 1) {
+                      const primerDigito = parseInt(val[0])
+                      if (primerDigito > 1) return
+                    }
+                    if (val.length >= 2) {
+                      const mes = parseInt(val.slice(0, 2))
+                      if (mes > 12 || mes === 0) return
+                    }
+
+                    const fmt = val.length > 2 ? val.slice(0, 2) + '/' + val.slice(2) : val
+                    handleChange('vencimiento', fmt)
+                  }}
                   />
                   {errors.vencimiento && <span className="field-error">{errors.vencimiento}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">CVV</label>
-                  <input className="form-input" placeholder="123" maxLength={4}
+                  <input className="form-input" placeholder="123" maxLength={3}
                     value={form.cvv} onChange={e => handleChange('cvv', e.target.value.replace(/\D/g, ''))} />
                   {errors.cvv && <span className="field-error">{errors.cvv}</span>}
                 </div>

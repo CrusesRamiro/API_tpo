@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 
 const initialForm = { username: '', nombre: '', apellido: '', email: '', password: '', password2: '' }
 
-export default function RegistroPage({ showToast }) {
+export default function RegistroView({ showToast }) {
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const { login } = useAuth()

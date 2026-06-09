@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ORDERS_MOCK } from '../data/mockData'
 
-export default function PedidosPage() {
+export default function PedidosView() {
   const [openId, setOpenId] = useState(null)
 
   return (

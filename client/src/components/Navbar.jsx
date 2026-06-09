@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useState } from 'react'
 
 export default function Navbar({ showToast }) {
@@ -13,12 +14,9 @@ export default function Navbar({ showToast }) {
     showToast('Sesión cerrada')
     navigate('/')
   }
-  const [darkMode, setDarkMode] = useState(false)
 
-  function toggleDark() {
-    setDarkMode(d => !d)
-    document.body.classList.toggle('dark')
-  }
+const { darkMode, toggleDark } = useTheme()
+
   return (
     <nav className="navbar">
       <NavLink to="/" className="nav-logo">

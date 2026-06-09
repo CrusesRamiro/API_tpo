@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 const initialForm = { nombre: '', email: '', asunto: '', mensaje: '' }
 
-export default function ContactoPage({ showToast }) {
+export default function ContactoView({ showToast }) {
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [sent, setSent] = useState(false)

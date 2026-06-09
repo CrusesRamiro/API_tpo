@@ -2,8 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { CATEGORIES } from '../data/mockData'
+import CartItemCard from '../components/CartItemCard'
 
-export default function CarritoPage({ showToast }) {
+export default function CarritoView({ showToast }) {
   const { cart, updateQty, removeItem, clearCart } = useCart()
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
@@ -44,33 +45,14 @@ export default function CarritoPage({ showToast }) {
       <div className="cart-layout">
         {/* ITEMS */}
         <div className="cart-items">
-          {cart.map(item => {
-            const cat = CATEGORIES.find(c => c.id === item.categoriaId)
-            return (
-              <div className="cart-item" key={item.id}>
-                  <div className="cart-item-img">
-                  {item.imagen ? (
-                    <img src={item.imagen} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                  ) : (
-                    item.emoji
-                  )}
-                  </div>
-                <div className="cart-item-info">
-                  <div className="cart-item-name">{item.nombre}</div>
-                  <div className="cart-item-cat">{cat?.nombre}</div>
-                  <div className="qty-control" style={{ width: 'fit-content', marginTop: '0.25rem' }}>
-                    <button className="qty-btn" onClick={() => updateQty(item.id, item.cantidad - 1)}>−</button>
-                    <span className="qty-val">{item.cantidad}</span>
-                    <button className="qty-btn" onClick={() => updateQty(item.id, item.cantidad + 1)}>+</button>
-                  </div>
-                </div>
-                <div className="cart-item-price">
-                  ${(item.precio * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                </div>
-                <button className="remove-btn" onClick={() => removeItem(item.id)}>✕</button>
-              </div>
-            )
-          })}
+          {cart.map(item => (
+            <CartItemCard
+              key={item.id}
+              item={item}
+              updateQty={updateQty}
+              removeItem={removeItem}
+            />
+          ))}
         </div>
 
         {/* SUMMARY */}

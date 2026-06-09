@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { PRODUCTS, CATEGORIES } from '../data/mockData'
+import QuantityControl from '../components/QuantityControl'
 
-export default function DetallePage({ showToast }) {
+export default function DetalleView({ showToast }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addToCart } = useCart()
@@ -74,11 +75,7 @@ export default function DetallePage({ showToast }) {
 
         {/* CANTIDAD + ADD TO CART */}
         <div className="qty-row">
-          <div className="qty-control">
-            <button className="qty-btn" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
-            <span className="qty-val">{qty}</span>
-            <button className="qty-btn" onClick={() => setQty(q => Math.min(product.stock, q + 1))}>+</button>
-          </div>
+          <QuantityControl qty={qty} setQty={setQty} max={product.stock} />
           <button className="btn-add-detail" onClick={handleAddToCart}>
             Agregar al carrito
           </button>
