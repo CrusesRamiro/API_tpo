@@ -1,6 +1,4 @@
-import { CATEGORIES } from '../data/mockData'
-
-export default function CategoryFilter({ activeCat, onChange }) {
+export default function CategoryFilter({ categorias = [], activeCat, onChange }) {
   return (
     <div style={{ marginBottom: '2rem' }}>
       <span
@@ -9,7 +7,7 @@ export default function CategoryFilter({ activeCat, onChange }) {
       >
         Todos
       </span>
-      {CATEGORIES.map(c => (
+      {categorias.map(c => (
         <span
           key={c.id}
           className={`tag ${activeCat === c.id ? 'active' : ''}`}

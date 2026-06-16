@@ -1,20 +1,35 @@
-import { useState } from 'react'
-import { PRODUCTS } from '../data/mockData'
+import { useState, useEffect } from 'react'
+import { getProductos } from '../services/productoService'
+import { getCategorias } from '../services/categoriaService'
 import SearchBar from '../components/SearchBar'
 import SortSelect from '../components/SortSelect'
 import CategoryFilter from '../components/CategoryFilter'
 import ProductGrid from '../components/ProductGrid'
 
 export default function ProductosView({ showToast }) {
+  const [productos, setProductos] = useState([])
+  const [categorias, setCategorias] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState(null)
   const [sortBy, setSortBy] = useState('default')
 
-  let filtered = PRODUCTS
-    .filter(p => activeCat ? p.categoriaId === activeCat : true)
+  useEffect(() => {
+    Promise.all([getProductos(), getCategorias()])
+      .then(([items, cats]) => {
+        setProductos(items)
+        setCategorias(cats)
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  let filtered = productos
+    .filter(p => activeCat ? p.categoria?.id === activeCat : true)
     .filter(p => {
       const q = search.toLowerCase()
-      return q === '' || p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q)
+      return q === '' || p.nombre.toLowerCase().includes(q) || p.descripcion?.toLowerCase().includes(q)
     })
 
   if (sortBy === 'precio-asc') filtered = [...filtered].sort((a, b) => a.precio - b.precio)
@@ -38,9 +53,11 @@ export default function ProductosView({ showToast }) {
           <SortSelect value={sortBy} onChange={setSortBy} />
         </div>
 
-        <CategoryFilter activeCat={activeCat} onChange={setActiveCat} />
+        <CategoryFilter categorias={categorias} activeCat={activeCat} onChange={setActiveCat} />
 
-        <ProductGrid products={filtered} showToast={showToast} />
+        {loading && <p style={{ textAlign: 'center', padding: '2rem' }}>Cargando productos...</p>}
+        {error && <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--error, red)' }}>No se pudo conectar con el servidor: {error}</p>}
+        {!loading && !error && <ProductGrid products={filtered} showToast={showToast} />}
       </div>
     </>
   )
