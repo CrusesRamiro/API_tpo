@@ -1,3 +1,4 @@
+/*
 export const CATEGORIES = [
   { id: 1, nombre: 'Rock', descripcion: 'Guitarras intensas y ritmo potente' },
   { id: 2, nombre: 'Pop', descripcion: 'Melodías pegadizas' },
@@ -43,3 +44,4 @@ export function precioFinal(product) {
   if (!product.descuento) return product.precio
   return product.precio * (1 - product.descuento / 100)
 }
+*/

@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { precioFinal } from '../data/mockData'
-
 const METODOS = [
   { id: 'tarjeta', label: 'Tarjeta de crédito / débito', icono: '💳' },
   { id: 'transferencia', label: 'Transferencia bancaria', icono: '🏦' },
@@ -16,7 +14,7 @@ export default function PagoView({ showToast }) {
   const [form, setForm] = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', cbu: '', alias: '' })
   const [errors, setErrors] = useState({})
 
-  const total = cart.reduce((acc, i) => acc + precioFinal(i) * i.cantidad, 0)
+  const total = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
   function handleChange(field, value) {
     setForm(f => ({ ...f, [field]: value }))

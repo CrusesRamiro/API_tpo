@@ -1,6 +1,4 @@
-import { CATEGORIES } from '../data/mockData'
-
-export default function CategoryTabs({ activeCat, onChange }) {
+export default function CategoryTabs({ categorias = [], activeCat, onChange }) {
   return (
     <div className="categories-bar">
       <button
@@ -9,7 +7,7 @@ export default function CategoryTabs({ activeCat, onChange }) {
       >
         Todos
       </button>
-      {CATEGORIES.map(c => (
+      {categorias.map(c => (
         <button
           key={c.id}
           className={`cat-tab ${activeCat === c.id ? 'active' : ''}`}

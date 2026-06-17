@@ -1,17 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PRODUCTS } from '../data/mockData'
+import { getProductos } from '../services/productoService'
+import { getCategorias } from '../services/categoriaService'
 import CategoryTabs from '../components/CategoryTabs'
 import ProductGrid from '../components/ProductGrid'
 
 export default function HomeView({ showToast }) {
+  const [productos, setProductos] = useState([])
+  const [categorias, setCategorias] = useState([])
   const [activeCat, setActiveCat] = useState(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  const featured = PRODUCTS.filter(p => p.nuevo).slice(0, 4)
+  useEffect(() => {
+    Promise.all([getProductos(), getCategorias()])
+      .then(([items, cats]) => {
+        setProductos(items)
+        setCategorias(cats)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const featured = productos.slice(0, 4)
   const filtered = activeCat
-    ? PRODUCTS.filter(p => p.categoriaId === activeCat)
-    : PRODUCTS.slice(0, 8)
+    ? productos.filter(p => p.categoria?.id === activeCat)
+    : productos.slice(0, 8)
 
   return (
     <>
@@ -37,18 +50,24 @@ export default function HomeView({ showToast }) {
             <h2 className="section-title">Novedades</h2>
             <span className="section-link" onClick={() => navigate('/productos')}>Ver todo →</span>
           </div>
-          <ProductGrid products={featured} showToast={showToast} />
+          {loading
+            ? <p style={{ color: 'var(--text3)' }}>Cargando...</p>
+            : <ProductGrid products={featured} showToast={showToast} />
+          }
         </div>
       </div>
 
-      <CategoryTabs activeCat={activeCat} onChange={setActiveCat} />
+      <CategoryTabs categorias={categorias} activeCat={activeCat} onChange={setActiveCat} />
 
       <div className="section">
         <div className="section-header">
           <h2 className="section-title">Catálogo</h2>
           <span style={{ fontSize: '0.85rem', color: 'var(--text3)' }}>{filtered.length} productos</span>
         </div>
-        <ProductGrid products={filtered} showToast={showToast} />
+        {loading
+          ? <p style={{ color: 'var(--text3)' }}>Cargando...</p>
+          : <ProductGrid products={filtered} showToast={showToast} />
+        }
       </div>
     </>
   )

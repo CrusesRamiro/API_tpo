@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { CATEGORIES } from '../data/mockData'
 import CartItemCard from '../components/CartItemCard'
 
 export default function CarritoView({ showToast }) {

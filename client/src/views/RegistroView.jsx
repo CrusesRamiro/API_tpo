@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { register as apiRegister } from '../services/authService'
 
 const initialForm = { username: '', nombre: '', apellido: '', email: '', password: '', password2: '' }
 
 export default function RegistroView({ showToast }) {
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
-  const { login } = useAuth()
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   function validate() {
@@ -29,10 +29,22 @@ export default function RegistroView({ showToast }) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    // Mock register — aca reemplazar con POST /usuarios cuando hagamos integracion backend
-    login({ id: 99, username: form.username, rol: 'ROLE_USER' })
-    showToast(`Cuenta creada. Bienvenido, ${form.nombre}!`)
-    navigate('/')
+
+    setLoading(true)
+    apiRegister({
+      username: form.username,
+      nombre: form.nombre,
+      apellido: form.apellido,
+      email: form.email,
+      password: form.password,
+      rolId: 2,
+    })
+      .then(() => {
+        showToast(`Cuenta creada. Iniciá sesión, ${form.nombre}!`)
+        navigate('/login')
+      })
+      .catch(err => setErrors({ general: err.message }))
+      .finally(() => setLoading(false))
   }
 
   function field(name, label, type = 'text', placeholder = '') {
@@ -57,6 +69,8 @@ export default function RegistroView({ showToast }) {
         <h2>Crear cuenta</h2>
         <p className="auth-sub">Completá tus datos para registrarte.</p>
 
+        {errors.general && <div className="auth-error">{errors.general}</div>}
+
         <form onSubmit={handleSubmit}>
           {field('username', 'Usuario', 'text', 'Nombre de usuario')}
           <div className="form-row">
@@ -66,8 +80,8 @@ export default function RegistroView({ showToast }) {
           {field('email', 'Email', 'email', 'tucorreo@email.com')}
           {field('password', 'Contraseña', 'password', '••••••••')}
           {field('password2', 'Confirmar contraseña', 'password', '••••••••')}
-          <button type="submit" className="form-submit" style={{ width: '100%', marginTop: '0.5rem' }}>
-            Crear cuenta
+          <button type="submit" className="form-submit" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
 

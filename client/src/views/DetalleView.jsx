@@ -1,18 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { PRODUCTS, CATEGORIES } from '../data/mockData'
+import { getProductoById } from '../services/productoService'
 import QuantityControl from '../components/QuantityControl'
+
+function getImageSrc(base64) {
+  if (!base64) return null
+  if (base64.startsWith('/9j/')) return `data:image/jpeg;base64,${base64}`
+  if (base64.startsWith('iVBORw')) return `data:image/png;base64,${base64}`
+  return `data:image/jpeg;base64,${base64}`
+}
 
 export default function DetalleView({ showToast }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addToCart } = useCart()
   const [qty, setQty] = useState(1)
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const product = PRODUCTS.find(p => p.id === Number(id))
+  useEffect(() => {
+    getProductoById(id)
+      .then(setProduct)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [id])
 
-  if (!product) {
+  if (loading) return <div className="section" style={{ textAlign: 'center', paddingTop: '4rem' }}>Cargando...</div>
+
+  if (error || !product) {
     return (
       <div className="section" style={{ textAlign: 'center', paddingTop: '4rem' }}>
         <p style={{ color: 'var(--text3)', marginBottom: '1rem' }}>Producto no encontrado.</p>
@@ -21,7 +38,7 @@ export default function DetalleView({ showToast }) {
     )
   }
 
-  const categoria = CATEGORIES.find(c => c.id === product.categoriaId)
+  const imageSrc = getImageSrc(product.fotos?.[0]?.imagen)
 
   function handleAddToCart() {
     addToCart(product, qty)
@@ -30,18 +47,16 @@ export default function DetalleView({ showToast }) {
 
   return (
     <div className="detail-page">
-      {/* GALLERY */}
       <div>
         <div className="detail-gallery">
-        {product.imagen ? (
-          <img src={product.imagen} alt={product.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'var(--radius)' }} />
-        ) : (
-          product.emoji
-        )}
+          {imageSrc ? (
+            <img src={imageSrc} alt={product.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'var(--radius)' }} />
+          ) : (
+            <div style={{ fontSize: '6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>💽</div>
+          )}
         </div>
       </div>
 
-      {/* INFO */}
       <div className="detail-info">
         <div className="detail-breadcrumb">
           <Link to="/">Inicio</Link>
@@ -51,14 +66,8 @@ export default function DetalleView({ showToast }) {
           <span style={{ color: 'var(--text)' }}>{product.nombre}</span>
         </div>
 
-        <div className="detail-cat">{categoria?.nombre}</div>
+        <div className="detail-cat">{product.categoria?.nombre}</div>
         <h1 className="detail-title">{product.nombre}</h1>
-
-        {product.nuevo && (
-          <span style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff', fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '20px', alignSelf: 'flex-start' }}>
-            Nuevo
-          </span>
-        )}
 
         <div className="detail-price">
           ${product.precio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
@@ -73,7 +82,6 @@ export default function DetalleView({ showToast }) {
           </span>
         </div>
 
-        {/* CANTIDAD + ADD TO CART */}
         <div className="qty-row">
           <QuantityControl qty={qty} setQty={setQty} max={product.stock} />
           <button className="btn-add-detail" onClick={handleAddToCart}>
