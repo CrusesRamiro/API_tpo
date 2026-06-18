@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { vaciarCarrito, agregarItemCarrito, checkout } from '../services/carritoService'
 const METODOS = [
   { id: 'tarjeta', label: 'Tarjeta de crédito / débito', icono: '💳' },
   { id: 'transferencia', label: 'Transferencia bancaria', icono: '🏦' },
@@ -9,10 +11,12 @@ const METODOS = [
 
 export default function PagoView({ showToast }) {
   const { cart, clearCart } = useCart()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [metodo, setMetodo] = useState('tarjeta')
   const [form, setForm] = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', cbu: '', alias: '' })
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
 
   const total = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
@@ -35,13 +39,26 @@ export default function PagoView({ showToast }) {
     return e
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    clearCart()
-    showToast('¡Pago confirmado!')
-    navigate('/pedidos')
+
+    setLoading(true)
+    try {
+      await vaciarCarrito(user.id, user.token)
+      for (const item of cart) {
+        await agregarItemCarrito(user.id, item.id, item.cantidad, user.token)
+      }
+      await checkout(user.id, user.token)
+      clearCart()
+      showToast('¡Pago confirmado!')
+      navigate('/pedidos')
+    } catch (err) {
+      showToast('Error: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (cart.length === 0) {
@@ -165,8 +182,8 @@ const tipoTarjeta = detectarTarjeta(form.numero)
                   {errors.cvv && <span className="field-error">{errors.cvv}</span>}
                 </div>
               </div>
-              <button type="submit" className="form-submit" style={{ width: '100%', marginTop: '0.5rem' }}>
-                Confirmar pago ${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              <button type="submit" className="form-submit" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
+                {loading ? 'Procesando...' : `Confirmar pago $${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
               </button>
             </form>
           )}
@@ -186,8 +203,8 @@ const tipoTarjeta = detectarTarjeta(form.numero)
                   value={form.cbu} onChange={e => handleChange('cbu', e.target.value)} />
                 {errors.cbu && <span className="field-error">{errors.cbu}</span>}
               </div>
-              <button type="submit" className="form-submit" style={{ width: '100%' }}>
-                Confirmar transferencia
+              <button type="submit" className="form-submit" style={{ width: '100%' }} disabled={loading}>
+                {loading ? 'Procesando...' : 'Confirmar transferencia'}
               </button>
             </form>
           )}
@@ -201,8 +218,8 @@ const tipoTarjeta = detectarTarjeta(form.numero)
                 <p>2. Llevá el código a cualquier Rapipago o Pago Fácil</p>
                 <p>3. Tu pedido se confirma automáticamente al acreditarse</p>
               </div>
-              <button type="submit" className="form-submit" style={{ width: '100%' }}>
-                Generar código de pago
+              <button type="submit" className="form-submit" style={{ width: '100%' }} disabled={loading}>
+                {loading ? 'Procesando...' : 'Generar código de pago'}
               </button>
             </form>
           )}
@@ -214,7 +231,7 @@ const tipoTarjeta = detectarTarjeta(form.numero)
           {cart.map(item => (
             <div className="summary-row" key={item.id}>
               <span>{item.nombre} x {item.cantidad}</span>
-              <span>${(precioFinal(item) * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span>${(item.precio * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
           ))}
           <div className="summary-total">

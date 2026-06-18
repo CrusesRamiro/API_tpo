@@ -408,8 +408,8 @@ export default function AdminView({ showToast }) {
                     <td style={{ ...tdStyle, color: 'var(--text2)' }}>{u.nombre} {u.apellido}</td>
                     <td style={{ ...tdStyle, color: 'var(--text2)' }}>{u.email}</td>
                     <td style={tdStyle}>
-                      <span style={{ background: u.rol === 'ROLE_ADMIN' ? '#dbeafe' : '#e8e8f0', color: u.rol === 'ROLE_ADMIN' ? '#1e40af' : '#1a1a2e', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 500 }}>
-                        {u.rol}
+                      <span style={{ background: u.rol?.nombre === 'ROLE_ADMIN' ? '#dbeafe' : '#e8e8f0', color: u.rol?.nombre === 'ROLE_ADMIN' ? '#1e40af' : '#1a1a2e', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 500 }}>
+                        {u.rol?.nombre}
                       </span>
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>

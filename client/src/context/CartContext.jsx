@@ -1,9 +1,12 @@
 import { createContext, useContext, useState } from 'react'
+import { useAuth } from './AuthContext'
+import { agregarItemCarrito } from '../services/carritoService'
 
 const CartContext = createContext(null)
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([])
+  const { user } = useAuth()
 
   function addToCart(product, cantidad = 1) {
     setCart(prev => {
@@ -13,6 +16,9 @@ export function CartProvider({ children }) {
       }
       return [...prev, { ...product, cantidad }]
     })
+    if (user) {
+      agregarItemCarrito(user.id, product.id, cantidad, user.token).catch(console.error)
+    }
   }
 
   function updateQty(id, cantidad) {
