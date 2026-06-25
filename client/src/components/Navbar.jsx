@@ -1,8 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
-import { useState } from 'react'
+import { selectDarkMode, toggleDark } from '../store/themeSlice'
 
 export default function Navbar({ showToast }) {
   const { cartCount } = useCart()
@@ -15,7 +15,8 @@ export default function Navbar({ showToast }) {
     navigate('/')
   }
 
-const { darkMode, toggleDark } = useTheme()
+  const darkMode = useSelector(selectDarkMode)
+  const dispatch = useDispatch()
 
   return (
     <nav className="navbar">
@@ -36,7 +37,7 @@ const { darkMode, toggleDark } = useTheme()
             type="checkbox"
             id="darkToggle"
             checked={darkMode}
-            onChange={toggleDark}
+            onChange={() => dispatch(toggleDark())}
           />
           <label htmlFor="darkToggle">
           <svg className="sun" viewBox="0 0 24 24">

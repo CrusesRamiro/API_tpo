@@ -1,7 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
-import { ThemeProvider } from './context/ThemeContext'
+import { selectDarkMode } from './store/themeSlice'
 import { useToast } from './hooks/useToast'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -19,9 +20,10 @@ import AdminView from './views/AdminView'
 
 function AppContent() {
   const { toast, showToast } = useToast()
+  const darkMode = useSelector(selectDarkMode)
 
   return (
-    <>
+    <div className={`app-wrapper ${darkMode ? 'dark' : ''}`}>
       <Navbar showToast={showToast} />
       <main>
         <Routes>
@@ -39,7 +41,7 @@ function AppContent() {
       </main>
       <Footer />
       <Toast message={toast.message} visible={toast.visible} />
-    </>
+    </div>
   )
 }
 
@@ -47,9 +49,7 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
+        <AppContent />
       </CartProvider>
     </AuthProvider>
   )
