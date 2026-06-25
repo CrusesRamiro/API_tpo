@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
+import { useDispatch } from 'react-redux'
+import { addToCart } from '../store/cartSlice'
 import { getProductoById } from '../services/productoService'
 import QuantityControl from '../components/QuantityControl'
 
@@ -14,7 +15,7 @@ function getImageSrc(base64) {
 export default function DetalleView({ showToast }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { addToCart } = useCart()
+  const dispatch = useDispatch()
   const [qty, setQty] = useState(1)
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -41,7 +42,7 @@ export default function DetalleView({ showToast }) {
   const imageSrc = getImageSrc(product.fotos?.[0]?.imagen)
 
   function handleAddToCart() {
-    addToCart(product, qty)
+    dispatch(addToCart(product, qty))
     showToast(`${product.nombre} x ${qty} agregado al carrito`)
   }
 

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { selectUser } from '../store/authSlice'
+import { selectCartItems, clearCart } from '../store/cartSlice'
 import { vaciarCarrito, agregarItemCarrito, checkout } from '../services/carritoService'
 const METODOS = [
   { id: 'tarjeta', label: 'Tarjeta de crédito / débito', icono: '💳' },
@@ -11,8 +11,9 @@ const METODOS = [
 ]
 
 export default function PagoView({ showToast }) {
-  const { cart, clearCart } = useCart()
+  const cart = useSelector(selectCartItems)
   const user = useSelector(selectUser)
+  const dispatch = useDispatch()
   const navigate = useNavigate()
   const [metodo, setMetodo] = useState('tarjeta')
   const [form, setForm] = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', cbu: '', alias: '' })
@@ -52,7 +53,7 @@ export default function PagoView({ showToast }) {
         await agregarItemCarrito(user.id, item.id, item.cantidad, user.token)
       }
       await checkout(user.id, user.token)
-      clearCart()
+      dispatch(clearCart())
       showToast('¡Pago confirmado!')
       navigate('/pedidos')
     } catch (err) {

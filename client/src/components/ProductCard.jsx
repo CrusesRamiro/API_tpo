@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
+import { useDispatch } from 'react-redux'
+import { addToCart } from '../store/cartSlice'
 
 function getImageSrc(base64) {
   if (!base64) return null
@@ -10,11 +11,11 @@ function getImageSrc(base64) {
 
 export default function ProductCard({ product, showToast }) {
   const navigate = useNavigate()
-  const { addToCart } = useCart()
+  const dispatch = useDispatch()
 
   function handleAddToCart(e) {
     e.stopPropagation()
-    addToCart(product)
+    dispatch(addToCart(product))
     showToast(`${product.nombre} agregado al carrito`)
   }
 

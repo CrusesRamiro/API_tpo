@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { selectIsLoggedIn } from '../store/authSlice'
+import { selectCartItems, updateQty, removeItem } from '../store/cartSlice'
 import CartItemCard from '../components/CartItemCard'
 
 export default function CarritoView({ showToast }) {
-  const { cart, updateQty, removeItem, clearCart } = useCart()
+  const cart = useSelector(selectCartItems)
   const isLoggedIn = useSelector(selectIsLoggedIn)
+  const dispatch = useDispatch()
   const navigate = useNavigate()
 
   const subtotal = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
@@ -49,8 +50,8 @@ export default function CarritoView({ showToast }) {
             <CartItemCard
               key={item.id}
               item={item}
-              updateQty={updateQty}
-              removeItem={removeItem}
+              updateQty={(id, cantidad) => dispatch(updateQty({ id, cantidad }))}
+              removeItem={(id) => dispatch(removeItem(id))}
             />
           ))}
         </div>
