@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useSelector } from 'react-redux'
+import { selectUser, selectIsLoggedIn } from '../store/authSlice'
 import { useNavigate } from 'react-router-dom'
 import { getProductos, createProducto, updateProducto, deleteProducto } from '../services/productoService'
 import { getCategorias, createCategoria, updateCategoria } from '../services/categoriaService'
@@ -9,7 +10,8 @@ import { getAllUsuarios } from '../services/usuarioService'
 const TABS = ['Productos', 'Categorías', 'Pedidos', 'Usuarios']
 
 export default function AdminView({ showToast }) {
-  const { isLoggedIn, user } = useAuth()
+  const isLoggedIn = useSelector(selectIsLoggedIn)
+  const user = useSelector(selectUser)
   const navigate = useNavigate()
   const [tab, setTab] = useState('Productos')
 

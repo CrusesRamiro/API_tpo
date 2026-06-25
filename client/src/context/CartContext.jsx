@@ -1,12 +1,13 @@
 import { createContext, useContext, useState } from 'react'
-import { useAuth } from './AuthContext'
+import { useSelector } from 'react-redux'
+import { selectUser } from '../store/authSlice'
 import { agregarItemCarrito } from '../services/carritoService'
 
 const CartContext = createContext(null)
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([])
-  const { user } = useAuth()
+  const user = useSelector(selectUser)
 
   function addToCart(product, cantidad = 1) {
     setCart(prev => {

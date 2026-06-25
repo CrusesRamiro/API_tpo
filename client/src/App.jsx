@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { CartProvider } from './context/CartContext'
-import { AuthProvider } from './context/AuthContext'
 import { selectDarkMode } from './store/themeSlice'
 import { useToast } from './hooks/useToast'
 import Navbar from './components/Navbar'
@@ -47,10 +46,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
+    <CartProvider>
+      <AppContent />
+    </CartProvider>
   )
 }

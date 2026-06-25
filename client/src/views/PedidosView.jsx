@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useSelector } from 'react-redux'
+import { selectUser, selectIsLoggedIn } from '../store/authSlice'
 import { getPedidosByUsuario } from '../services/pedidoService'
 
 export default function PedidosView() {
-  const { user, isLoggedIn } = useAuth()
+  const user = useSelector(selectUser)
+  const isLoggedIn = useSelector(selectIsLoggedIn)
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)

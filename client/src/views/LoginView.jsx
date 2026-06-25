@@ -1,28 +1,33 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { login as apiLogin } from '../services/authService'
+import { useDispatch, useSelector } from 'react-redux'
+import { loginUser, clearError, selectAuthStatus, selectAuthError } from '../store/authSlice'
 
 export default function LoginView({ showToast }) {
   const [form, setForm] = useState({ username: '', password: '' })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const [formError, setFormError] = useState('')
+  const dispatch = useDispatch()
   const navigate = useNavigate()
+  const loading = useSelector(selectAuthStatus) === 'loading'
+  const authError = useSelector(selectAuthError)
+  const error = formError || authError
+
+  function clearErrors() {
+    setFormError('')
+    dispatch(clearError())
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
-    if (!form.username || !form.password) { setError('Completá todos los campos.'); return }
+    if (!form.username || !form.password) { setFormError('Completá todos los campos.'); return }
 
-    setLoading(true)
-    apiLogin(form.username, form.password)
+    dispatch(loginUser(form))
+      .unwrap()
       .then(data => {
-        login({ id: data.userId, username: data.username, rol: data.rol, token: data.token })
         showToast(`Bienvenido, ${data.username}`)
         navigate('/')
       })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
+      .catch(() => { /* el error queda en el slice (selectAuthError) */ })
   }
 
   return (
@@ -40,7 +45,7 @@ export default function LoginView({ showToast }) {
               className="form-input"
               placeholder="Nombre de usuario"
               value={form.username}
-              onChange={e => { setForm(f => ({ ...f, username: e.target.value })); setError('') }}
+              onChange={e => { setForm(f => ({ ...f, username: e.target.value })); clearErrors() }}
             />
           </div>
           <div className="form-group">
@@ -50,7 +55,7 @@ export default function LoginView({ showToast }) {
               type="password"
               placeholder="••••••••"
               value={form.password}
-              onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setError('') }}
+              onChange={e => { setForm(f => ({ ...f, password: e.target.value })); clearErrors() }}
             />
           </div>
           <button type="submit" className="form-submit" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>

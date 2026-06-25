@@ -1,22 +1,23 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { useCart } from '../context/CartContext'
-import { useAuth } from '../context/AuthContext'
 import { selectDarkMode, toggleDark } from '../store/themeSlice'
+import { selectUser, selectIsLoggedIn, logout } from '../store/authSlice'
 
 export default function Navbar({ showToast }) {
   const { cartCount } = useCart()
-  const { isLoggedIn, logout, user } = useAuth()
+  const isLoggedIn = useSelector(selectIsLoggedIn)
+  const user = useSelector(selectUser)
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   function handleLogout() {
-    logout()
+    dispatch(logout())
     showToast('Sesión cerrada')
     navigate('/')
   }
 
   const darkMode = useSelector(selectDarkMode)
-  const dispatch = useDispatch()
 
   return (
     <nav className="navbar">

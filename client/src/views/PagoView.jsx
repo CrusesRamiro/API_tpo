@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { useAuth } from '../context/AuthContext'
+import { useSelector } from 'react-redux'
+import { selectUser } from '../store/authSlice'
 import { vaciarCarrito, agregarItemCarrito, checkout } from '../services/carritoService'
 const METODOS = [
   { id: 'tarjeta', label: 'Tarjeta de crédito / débito', icono: '💳' },
@@ -11,7 +12,7 @@ const METODOS = [
 
 export default function PagoView({ showToast }) {
   const { cart, clearCart } = useCart()
-  const { user } = useAuth()
+  const user = useSelector(selectUser)
   const navigate = useNavigate()
   const [metodo, setMetodo] = useState('tarjeta')
   const [form, setForm] = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', cbu: '', alias: '' })
