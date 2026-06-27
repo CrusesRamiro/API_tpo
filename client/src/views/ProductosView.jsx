@@ -6,10 +6,22 @@ import SortSelect from '../components/SortSelect'
 import CategoryFilter from '../components/CategoryFilter'
 import ProductGrid from '../components/ProductGrid'
 
+// Caché del catálogo en localStorage: se pinta al instante lo último visto y se
+// revalida contra el backend en segundo plano (stale-while-revalidate).
+const CATALOGO_CACHE = 'catalogo'
+const loadCatalogoCache = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CATALOGO_CACHE))
+  } catch {
+    return null
+  }
+}
+
 export default function ProductosView({ showToast }) {
-  const [productos, setProductos] = useState([])
-  const [categorias, setCategorias] = useState([])
-  const [loading, setLoading] = useState(true)
+  const cache = loadCatalogoCache()
+  const [productos, setProductos] = useState(cache?.productos || [])
+  const [categorias, setCategorias] = useState(cache?.categorias || [])
+  const [loading, setLoading] = useState(!cache)
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState(null)
@@ -20,9 +32,13 @@ export default function ProductosView({ showToast }) {
       .then(([items, cats]) => {
         setProductos(items)
         setCategorias(cats)
+        setError(null)
+        localStorage.setItem(CATALOGO_CACHE, JSON.stringify({ productos: items, categorias: cats }))
       })
-      .catch(err => setError(err.message))
+      // Si falla pero ya teníamos cache, no rompemos la vista: dejamos lo cacheado.
+      .catch(err => { if (!cache) setError(err.message) })
       .finally(() => setLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   let filtered = productos
