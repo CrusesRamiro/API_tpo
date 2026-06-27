@@ -6,11 +6,15 @@ import cartReducer, {
   removeItem,
   clearCart,
   addToCart,
+  changeQty,
+  removeFromCart,
+  emptyCart,
+  fetchAndMergeCart,
   selectCartItems,
   selectCartCount,
   selectCartTotal,
 } from './cartSlice'
-import authReducer from './authSlice'
+import authReducer, { logout } from './authSlice'
 
 const prod = (id, precio) => ({ id, nombre: `p${id}`, precio })
 
@@ -100,5 +104,99 @@ describe('addToCart (thunk)', () => {
 
     expect(selectCartCount(store.getState())).toBe(2)
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('sincronización con el back (logueado)', () => {
+  const makeStore = (user) =>
+    configureStore({
+      reducer: { cart: cartReducer, auth: authReducer },
+      preloadedState: { auth: { user, status: 'idle', error: null }, cart: { items: [] } },
+    })
+
+  it('changeQty >0 logueado: actualiza local y hace PUT al back', () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const store = makeStore({ id: 7, token: 'jwt' })
+    store.dispatch(addItem({ product: prod(1, 100), cantidad: 1 }))
+    store.dispatch(changeQty(1, 5))
+
+    expect(selectCartItems(store.getState())[0].cantidad).toBe(5)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0][1].method).toBe('PUT')
+  })
+
+  it('changeQty 0 logueado: elimina local y hace DELETE al back', () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const store = makeStore({ id: 7, token: 'jwt' })
+    store.dispatch(addItem({ product: prod(1, 100), cantidad: 1 }))
+    store.dispatch(changeQty(1, 0))
+
+    expect(selectCartItems(store.getState())).toHaveLength(0)
+    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE')
+  })
+
+  it('removeFromCart invitado: saca local y NO llama al back', () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    const store = makeStore(null)
+    store.dispatch(addItem({ product: prod(1, 100), cantidad: 1 }))
+    store.dispatch(removeFromCart(1))
+
+    expect(selectCartItems(store.getState())).toHaveLength(0)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('emptyCart logueado: vacía local y hace DELETE al back', () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const store = makeStore({ id: 7, token: 'jwt' })
+    store.dispatch(addItem({ product: prod(1, 100), cantidad: 2 }))
+    store.dispatch(emptyCart())
+
+    expect(selectCartItems(store.getState())).toHaveLength(0)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE')
+  })
+
+  it('logout vacía el carrito local', () => {
+    let state = cartReducer(undefined, addItem({ product: prod(1, 100), cantidad: 2 }))
+    state = cartReducer(state, logout())
+    expect(state.items).toHaveLength(0)
+  })
+})
+
+describe('fetchAndMergeCart (fusión invitado + DB)', () => {
+  it('suma las cantidades de los productos repetidos entre local y DB', async () => {
+    const remote = {
+      items: [
+        { item: prod(1, 100), cantidad: 2 },
+        { item: prod(2, 50), cantidad: 1 },
+      ],
+    }
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(remote) }) // GET carrito
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({}) })          // POST push items
+    vi.stubGlobal('fetch', fetchMock)
+
+    const store = configureStore({
+      reducer: { cart: cartReducer, auth: authReducer },
+      preloadedState: {
+        auth: { user: { id: 7, token: 'jwt' }, status: 'idle', error: null },
+        cart: { items: [{ ...prod(1, 100), cantidad: 3 }, { ...prod(3, 25), cantidad: 1 }] },
+      },
+    })
+
+    await store.dispatch(fetchAndMergeCart())
+    const items = selectCartItems(store.getState())
+
+    expect(items.find(i => i.id === 1).cantidad).toBe(5) // 2 (DB) + 3 (local)
+    expect(items.find(i => i.id === 2).cantidad).toBe(1) // solo en DB
+    expect(items.find(i => i.id === 3).cantidad).toBe(1) // solo local
   })
 })

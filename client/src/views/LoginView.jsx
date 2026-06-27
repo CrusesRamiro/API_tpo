@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { loginUser, clearError, selectAuthStatus, selectAuthError } from '../store/authSlice'
+import { fetchAndMergeCart } from '../store/cartSlice'
 
 export default function LoginView({ showToast }) {
   const [form, setForm] = useState({ username: '', password: '' })
@@ -24,6 +25,7 @@ export default function LoginView({ showToast }) {
     dispatch(loginUser(form))
       .unwrap()
       .then(data => {
+        dispatch(fetchAndMergeCart())
         showToast(`Bienvenido, ${data.username}`)
         navigate('/')
       })

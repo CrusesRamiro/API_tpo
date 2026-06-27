@@ -1,6 +1,9 @@
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { selectDarkMode } from './store/themeSlice'
+import { selectUser } from './store/authSlice'
+import { syncCartFromDB } from './store/cartSlice'
 import { useToast } from './hooks/useToast'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -19,6 +22,16 @@ import AdminView from './views/AdminView'
 function AppContent() {
   const { toast, showToast } = useToast()
   const darkMode = useSelector(selectDarkMode)
+  const user = useSelector(selectUser)
+  const dispatch = useDispatch()
+
+  // Al recargar estando logueado: el carrito ya se pintó desde el cache de
+  // localStorage; reconciliamos con la DB en segundo plano.
+  useEffect(() => {
+    if (user) dispatch(syncCartFromDB())
+    // solo al montar la app
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className={`app-wrapper ${darkMode ? 'dark' : ''}`}>

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { selectIsLoggedIn } from '../store/authSlice'
-import { selectCartItems, updateQty, removeItem } from '../store/cartSlice'
+import { selectCartItems, changeQty, removeFromCart, emptyCart } from '../store/cartSlice'
 import CartItemCard from '../components/CartItemCard'
 
 export default function CarritoView({ showToast }) {
@@ -50,8 +50,8 @@ export default function CarritoView({ showToast }) {
             <CartItemCard
               key={item.id}
               item={item}
-              updateQty={(id, cantidad) => dispatch(updateQty({ id, cantidad }))}
-              removeItem={(id) => dispatch(removeItem(id))}
+              updateQty={(id, cantidad) => dispatch(changeQty(id, cantidad))}
+              removeItem={(id) => dispatch(removeFromCart(id))}
             />
           ))}
         </div>
@@ -75,6 +75,19 @@ export default function CarritoView({ showToast }) {
           </div>
           <button className="checkout-btn" onClick={handleCheckout}>
             {isLoggedIn ? 'Finalizar compra' : 'Iniciar sesión para comprar'}
+          </button>
+          <button
+            onClick={() => { dispatch(emptyCart()); showToast('Carrito vaciado') }}
+            style={{
+              width: '100%', marginTop: '0.75rem', padding: '0.85rem',
+              background: 'transparent', color: 'var(--accent)',
+              border: '2px solid var(--accent)', borderRadius: 'var(--radius)',
+              fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--accent)' }}
+          >
+            🗑️ Vaciar carrito
           </button>
         </div>
       </div>
