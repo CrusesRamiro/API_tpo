@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { configureStore } from '@reduxjs/toolkit'
 import cartReducer, {
   addItem,
@@ -15,11 +15,25 @@ import cartReducer, {
   selectCartTotal,
 } from './cartSlice'
 import authReducer, { logout } from './authSlice'
+import {
+  agregarItemCarrito,
+  actualizarCantidadCarrito,
+  eliminarItemCarrito,
+  vaciarCarrito,
+  obtenerCarrito,
+} from '../services/carritoService'
+
+
+vi.mock('../services/carritoService')
 
 const prod = (id, precio) => ({ id, nombre: `p${id}`, precio })
 
+beforeEach(() => {
+  localStorage.clear()
+})
+
 afterEach(() => {
-  vi.restoreAllMocks()
+  vi.resetAllMocks()
 })
 
 describe('cartSlice reducers', () => {
@@ -85,25 +99,20 @@ describe('addToCart (thunk)', () => {
     })
 
   it('sin usuario: agrega al carrito pero NO sincroniza con el back', () => {
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
-
     const store = makeStore(null)
     store.dispatch(addToCart(prod(1, 100), 2))
 
     expect(selectCartItems(store.getState())).toHaveLength(1)
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(agregarItemCarrito).not.toHaveBeenCalled()
   })
 
   it('con usuario logueado: agrega al carrito Y llama al back', () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) })
-    vi.stubGlobal('fetch', fetchMock)
-
     const store = makeStore({ id: 7, token: 'jwt' })
     store.dispatch(addToCart(prod(1, 100), 2))
 
     expect(selectCartCount(store.getState())).toBe(2)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(agregarItemCarrito).toHaveBeenCalledTimes(1)
+    expect(agregarItemCarrito).toHaveBeenCalledWith(7, 1, 2) // usuarioId, idItem, cant
   })
 })
 
@@ -114,54 +123,42 @@ describe('sincronización con el back (logueado)', () => {
       preloadedState: { auth: { user, status: 'idle', error: null }, cart: { items: [] } },
     })
 
-  it('changeQty >0 logueado: actualiza local y hace PUT al back', () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchMock)
-
+  it('changeQty >0 logueado: actualiza local y actualiza la cantidad en el back', () => {
     const store = makeStore({ id: 7, token: 'jwt' })
     store.dispatch(addItem({ product: prod(1, 100), cantidad: 1 }))
     store.dispatch(changeQty(1, 5))
 
     expect(selectCartItems(store.getState())[0].cantidad).toBe(5)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][1].method).toBe('PUT')
+    expect(actualizarCantidadCarrito).toHaveBeenCalledWith(7, 1, 5)
+    expect(eliminarItemCarrito).not.toHaveBeenCalled()
   })
 
-  it('changeQty 0 logueado: elimina local y hace DELETE al back', () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchMock)
-
+  it('changeQty 0 logueado: elimina local y elimina el item en el back', () => {
     const store = makeStore({ id: 7, token: 'jwt' })
     store.dispatch(addItem({ product: prod(1, 100), cantidad: 1 }))
     store.dispatch(changeQty(1, 0))
 
     expect(selectCartItems(store.getState())).toHaveLength(0)
-    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE')
+    expect(eliminarItemCarrito).toHaveBeenCalledWith(7, 1)
+    expect(actualizarCantidadCarrito).not.toHaveBeenCalled()
   })
 
   it('removeFromCart invitado: saca local y NO llama al back', () => {
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
-
     const store = makeStore(null)
     store.dispatch(addItem({ product: prod(1, 100), cantidad: 1 }))
     store.dispatch(removeFromCart(1))
 
     expect(selectCartItems(store.getState())).toHaveLength(0)
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(eliminarItemCarrito).not.toHaveBeenCalled()
   })
 
-  it('emptyCart logueado: vacía local y hace DELETE al back', () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true })
-    vi.stubGlobal('fetch', fetchMock)
-
+  it('emptyCart logueado: vacía local y vacía el carrito en el back', () => {
     const store = makeStore({ id: 7, token: 'jwt' })
     store.dispatch(addItem({ product: prod(1, 100), cantidad: 2 }))
     store.dispatch(emptyCart())
 
     expect(selectCartItems(store.getState())).toHaveLength(0)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE')
+    expect(vaciarCarrito).toHaveBeenCalledWith(7)
   })
 
   it('logout vacía el carrito local', () => {
@@ -173,16 +170,14 @@ describe('sincronización con el back (logueado)', () => {
 
 describe('fetchAndMergeCart (fusión invitado + DB)', () => {
   it('suma las cantidades de los productos repetidos entre local y DB', async () => {
-    const remote = {
+    // obtenerCarrito resuelve directamente con el dato (interceptor de axios).
+    obtenerCarrito.mockResolvedValue({
       items: [
         { item: prod(1, 100), cantidad: 2 },
         { item: prod(2, 50), cantidad: 1 },
       ],
-    }
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(remote) }) // GET carrito
-      .mockResolvedValue({ ok: true, json: () => Promise.resolve({}) })          // POST push items
-    vi.stubGlobal('fetch', fetchMock)
+    })
+    agregarItemCarrito.mockResolvedValue({})
 
     const store = configureStore({
       reducer: { cart: cartReducer, auth: authReducer },
@@ -198,5 +193,7 @@ describe('fetchAndMergeCart (fusión invitado + DB)', () => {
     expect(items.find(i => i.id === 1).cantidad).toBe(5) // 2 (DB) + 3 (local)
     expect(items.find(i => i.id === 2).cantidad).toBe(1) // solo en DB
     expect(items.find(i => i.id === 3).cantidad).toBe(1) // solo local
+    // empujó los 2 items locales al back
+    expect(agregarItemCarrito).toHaveBeenCalledTimes(2)
   })
 })

@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { addToCart } from '../store/cartSlice'
-import { getProductoById } from '../services/productoService'
+import {
+  fetchProductoById,
+  clearSelected,
+  selectProductoSelected,
+  selectProductosLoading,
+  selectProductosError,
+} from '../store/productosSlice'
 import QuantityControl from '../components/QuantityControl'
 
 function getImageSrc(base64) {
@@ -17,16 +23,14 @@ export default function DetalleView({ showToast }) {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [qty, setQty] = useState(1)
-  const [product, setProduct] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const product = useSelector(selectProductoSelected)
+  const loading = useSelector(selectProductosLoading)
+  const error = useSelector(selectProductosError)
 
   useEffect(() => {
-    getProductoById(id)
-      .then(setProduct)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [id])
+    dispatch(fetchProductoById(id))
+    return () => dispatch(clearSelected()) // limpiamos al salir del detalle
+  }, [dispatch, id])
 
   if (loading) return <div className="section" style={{ textAlign: 'center', paddingTop: '4rem' }}>Cargando...</div>
 

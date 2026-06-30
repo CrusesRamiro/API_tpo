@@ -1,14 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register as apiRegister } from '../services/authService'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  registerUser,
+  clearRegisterError,
+  selectRegisterStatus,
+  selectRegisterError,
+} from '../store/authSlice'
 
 const initialForm = { username: '', nombre: '', apellido: '', email: '', password: '', password2: '' }
 
 export default function RegistroView({ showToast }) {
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
-  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const dispatch = useDispatch()
   const navigate = useNavigate()
+  const status = useSelector(selectRegisterStatus)
+  const registerError = useSelector(selectRegisterError)
+  const loading = status === 'loading'
+
+  // Limpiamos cualquier estado de registro previo al entrar/salir.
+  useEffect(() => () => { dispatch(clearRegisterError()) }, [dispatch])
+
+  // Reaccionamos al resultado del thunk leyendo el estado del slice.
+  useEffect(() => {
+    if (submitted && status === 'succeeded') {
+      showToast(`Cuenta creada. Iniciá sesión, ${form.nombre}!`)
+      navigate('/login')
+    }
+  }, [submitted, status, form.nombre, navigate, showToast])
 
   function validate() {
     const e = {}
@@ -21,30 +42,20 @@ export default function RegistroView({ showToast }) {
   }
 
   function handleChange(field, value) {
-    setForm(f => ({ ...f, [field]: value }))
-    if (errors[field]) setErrors(e => ({ ...e, [field]: null }))
+    setForm((f) => ({ ...f, [field]: value }))
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: null }))
+    if (registerError) dispatch(clearRegisterError())
   }
 
   function handleSubmit(e) {
     e.preventDefault()
     const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-
-    setLoading(true)
-    apiRegister({
-      username: form.username,
-      nombre: form.nombre,
-      apellido: form.apellido,
-      email: form.email,
-      password: form.password,
-      rolId: 2,
-    })
-      .then(() => {
-        showToast(`Cuenta creada. Iniciá sesión, ${form.nombre}!`)
-        navigate('/login')
-      })
-      .catch(err => setErrors({ general: err.message }))
-      .finally(() => setLoading(false))
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
+    setSubmitted(true)
+    dispatch(registerUser(form))
   }
 
   function field(name, label, type = 'text', placeholder = '') {
@@ -56,7 +67,7 @@ export default function RegistroView({ showToast }) {
           type={type}
           placeholder={placeholder}
           value={form[name]}
-          onChange={e => handleChange(name, e.target.value)}
+          onChange={(e) => handleChange(name, e.target.value)}
         />
         {errors[name] && <span className="field-error">{errors[name]}</span>}
       </div>
@@ -69,7 +80,7 @@ export default function RegistroView({ showToast }) {
         <h2>Crear cuenta</h2>
         <p className="auth-sub">Completá tus datos para registrarte.</p>
 
-        {errors.general && <div className="auth-error">{errors.general}</div>}
+        {registerError && <div className="auth-error">{registerError}</div>}
 
         <form onSubmit={handleSubmit}>
           {field('username', 'Usuario', 'text', 'Nombre de usuario')}

@@ -1,24 +1,43 @@
-import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
+import { useState, useEffect, Fragment } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { selectUser, selectIsLoggedIn } from '../store/authSlice'
 import { useNavigate } from 'react-router-dom'
-import { getProductos, createProducto, updateProducto, deleteProducto } from '../services/productoService'
-import { getCategorias, createCategoria, updateCategoria } from '../services/categoriaService'
-import { getAllPedidos, updateEstadoPedido } from '../services/pedidoService'
-import { getAllUsuarios } from '../services/usuarioService'
+import {
+  fetchProductos,
+  addProducto,
+  editProducto,
+  removeProducto,
+  selectProductos,
+} from '../store/productosSlice'
+import {
+  fetchCategorias,
+  addCategoria,
+  editCategoria,
+  selectCategorias,
+} from '../store/categoriasSlice'
+import {
+  fetchAllPedidos,
+  changeEstadoPedido,
+  selectPedidos,
+} from '../store/pedidosSlice'
+import { fetchUsuarios, selectUsuarios } from '../store/usuariosSlice'
 
 const TABS = ['Productos', 'Categorías', 'Pedidos', 'Usuarios']
 
 export default function AdminView({ showToast }) {
   const isLoggedIn = useSelector(selectIsLoggedIn)
   const user = useSelector(selectUser)
+  const dispatch = useDispatch()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('Productos')
 
-  const [productos, setProductos] = useState([])
-  const [categorias, setCategorias] = useState([])
-  const [pedidos, setPedidos] = useState([])
-  const [usuarios, setUsuarios] = useState([])
+  // Datos: TODO viene del estado global (Redux), nada de useState local de datos.
+  const productos = useSelector(selectProductos)
+  const categorias = useSelector(selectCategorias)
+  const pedidos = useSelector(selectPedidos)
+  const usuarios = useSelector(selectUsuarios)
+
+  // Estado de UI (qué pestaña, qué formulario está abierto, valores de inputs).
+  const [tab, setTab] = useState('Productos')
 
   const [editProd, setEditProd] = useState(null)
   const [nuevoProd, setNuevoProd] = useState(false)
@@ -32,21 +51,14 @@ export default function AdminView({ showToast }) {
   const [buscarIdPedido, setBuscarIdPedido] = useState('')
   const [pedidoEncontrado, setPedidoEncontrado] = useState(null)
 
-  const [editUser, setEditUser] = useState(null)
-  const [formUser, setFormUser] = useState({})
-
+  // Carga inicial: disparamos los thunks. Las llamadas viven en Redux, no acá.
   useEffect(() => {
     if (!isLoggedIn || user?.rol !== 'ROLE_ADMIN') return
-    const token = user.token
-    Promise.all([getProductos(), getCategorias(), getAllPedidos(token), getAllUsuarios(token)])
-      .then(([prods, cats, peds, users]) => {
-        setProductos(prods)
-        setCategorias(cats)
-        setPedidos(peds)
-        setUsuarios(users)
-      })
-      .catch(err => showToast('Error al cargar datos: ' + err.message))
-  }, [isLoggedIn, user])
+    dispatch(fetchProductos())
+    dispatch(fetchCategorias())
+    dispatch(fetchAllPedidos())
+    dispatch(fetchUsuarios())
+  }, [dispatch, isLoggedIn, user])
 
   if (!isLoggedIn || user?.rol !== 'ROLE_ADMIN') {
     return (
@@ -68,41 +80,42 @@ export default function AdminView({ showToast }) {
 
   function buscarPedido() {
     const id = Number(buscarIdPedido)
-    const encontrado = pedidos.find(p => p.id === id)
+    const encontrado = pedidos.find((p) => p.id === id)
     if (encontrado) setPedidoEncontrado(encontrado)
     else { showToast('Pedido no encontrado'); setPedidoEncontrado(null) }
   }
 
+  // --- Handlers: solo despachan thunks. Sin try/catch ni .then/.catch.
+  // El resultado se refleja en las tablas (estado global) y los errores los
+  // muestra el errorMiddleware centralizado.
   function handleGuardarProducto() {
-    const data = { nombre: formProd.nombre, descripcion: formProd.descripcion, precio: Number(formProd.precio), stock: Number(formProd.stock), categoriaId: Number(formProd.categoriaId) }
-    const accion = editProd
-      ? updateProducto(editProd, data, user.token).then(updated => setProductos(prev => prev.map(p => p.id === editProd ? updated : p)))
-      : createProducto(data, user.token).then(created => setProductos(prev => [...prev, created]))
-    accion
-      .then(() => { showToast(editProd ? 'Producto actualizado' : 'Producto creado'); setEditProd(null); setNuevoProd(false) })
-      .catch(err => showToast(err.message))
+    const data = {
+      nombre: formProd.nombre,
+      descripcion: formProd.descripcion,
+      precio: Number(formProd.precio),
+      stock: Number(formProd.stock),
+      categoriaId: Number(formProd.categoriaId),
+    }
+    if (editProd) dispatch(editProducto({ id: editProd, data }))
+    else dispatch(addProducto(data))
+    setEditProd(null)
+    setNuevoProd(false)
   }
 
   function handleEliminarProducto(id) {
-    deleteProducto(id, user.token)
-      .then(() => { setProductos(prev => prev.filter(p => p.id !== id)); showToast('Producto eliminado') })
-      .catch(err => showToast(err.message))
+    dispatch(removeProducto(id))
   }
 
   function handleGuardarCategoria() {
     const data = { nombre: formCat.nombre, descripcion: formCat.descripcion }
-    const accion = editCat
-      ? updateCategoria(editCat, data, user.token).then(updated => setCategorias(prev => prev.map(c => c.id === editCat ? updated : c)))
-      : createCategoria(data, user.token).then(created => setCategorias(prev => [...prev, created]))
-    accion
-      .then(() => { showToast(editCat ? 'Categoría actualizada' : 'Categoría creada'); setEditCat(null); setNuevaCat(false) })
-      .catch(err => showToast(err.message))
+    if (editCat) dispatch(editCategoria({ id: editCat, data }))
+    else dispatch(addCategoria(data))
+    setEditCat(null)
+    setNuevaCat(false)
   }
 
   function handleCambiarEstado(pedidoId, estado) {
-    updateEstadoPedido(pedidoId, estado, user.token)
-      .then(updated => { setPedidos(prev => prev.map(p => p.id === pedidoId ? updated : p)); showToast(`Pedido #${pedidoId} → ${estado}`) })
-      .catch(err => showToast(err.message))
+    dispatch(changeEstadoPedido({ id: pedidoId, estado }))
   }
 
   const thStyle = { padding: '0.75rem 0.5rem', color: 'var(--text3)', fontWeight: 500, textAlign: 'left' }
@@ -116,7 +129,7 @@ export default function AdminView({ showToast }) {
       </div>
 
       <div className="categories-bar" style={{ position: 'sticky', top: 'var(--nav-h)', zIndex: 50 }}>
-        {TABS.map(t => (
+        {TABS.map((t) => (
           <button key={t} className={`cat-tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
@@ -141,27 +154,27 @@ export default function AdminView({ showToast }) {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Nombre</label>
-                    <input className="form-input" value={formProd.nombre || ''} onChange={e => setFormProd(f => ({ ...f, nombre: e.target.value }))} />
+                    <input className="form-input" value={formProd.nombre || ''} onChange={(e) => setFormProd((f) => ({ ...f, nombre: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Categoría</label>
-                    <select className="form-select" value={formProd.categoriaId || ''} onChange={e => setFormProd(f => ({ ...f, categoriaId: Number(e.target.value) }))}>
-                      {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                    <select className="form-select" value={formProd.categoriaId || ''} onChange={(e) => setFormProd((f) => ({ ...f, categoriaId: Number(e.target.value) }))}>
+                      {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                     </select>
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Descripción</label>
-                  <input className="form-input" value={formProd.descripcion || ''} onChange={e => setFormProd(f => ({ ...f, descripcion: e.target.value }))} />
+                  <input className="form-input" value={formProd.descripcion || ''} onChange={(e) => setFormProd((f) => ({ ...f, descripcion: e.target.value }))} />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Precio</label>
-                    <input className="form-input" type="number" value={formProd.precio || ''} onChange={e => setFormProd(f => ({ ...f, precio: e.target.value }))} />
+                    <input className="form-input" type="number" value={formProd.precio || ''} onChange={(e) => setFormProd((f) => ({ ...f, precio: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Stock</label>
-                    <input className="form-input" type="number" value={formProd.stock || ''} onChange={e => setFormProd(f => ({ ...f, stock: e.target.value }))} />
+                    <input className="form-input" type="number" value={formProd.stock || ''} onChange={(e) => setFormProd((f) => ({ ...f, stock: e.target.value }))} />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
@@ -183,7 +196,7 @@ export default function AdminView({ showToast }) {
                 </tr>
               </thead>
               <tbody>
-                {productos.map(p => (
+                {productos.map((p) => (
                   <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{p.nombre}</td>
                     <td style={{ ...tdStyle, color: 'var(--text2)' }}>{p.categoria?.nombre}</td>
@@ -224,11 +237,11 @@ export default function AdminView({ showToast }) {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Nombre</label>
-                    <input className="form-input" value={formCat.nombre || ''} onChange={e => setFormCat(f => ({ ...f, nombre: e.target.value }))} />
+                    <input className="form-input" value={formCat.nombre || ''} onChange={(e) => setFormCat((f) => ({ ...f, nombre: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Descripción</label>
-                    <input className="form-input" value={formCat.descripcion || ''} onChange={e => setFormCat(f => ({ ...f, descripcion: e.target.value }))} />
+                    <input className="form-input" value={formCat.descripcion || ''} onChange={(e) => setFormCat((f) => ({ ...f, descripcion: e.target.value }))} />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -248,7 +261,7 @@ export default function AdminView({ showToast }) {
                 </tr>
               </thead>
               <tbody>
-                {categorias.map(c => (
+                {categorias.map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{c.nombre}</td>
                     <td style={{ ...tdStyle, color: 'var(--text2)' }}>{c.descripcion}</td>
@@ -271,8 +284,8 @@ export default function AdminView({ showToast }) {
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.5rem' }}>
               <input className="form-input" placeholder="Buscar por ID de pedido..." style={{ maxWidth: '280px' }}
                 value={buscarIdPedido}
-                onChange={e => { setBuscarIdPedido(e.target.value); if (!e.target.value) setPedidoEncontrado(null) }}
-                onKeyDown={e => e.key === 'Enter' && buscarPedido()} />
+                onChange={(e) => { setBuscarIdPedido(e.target.value); if (!e.target.value) setPedidoEncontrado(null) }}
+                onKeyDown={(e) => e.key === 'Enter' && buscarPedido()} />
               <button className="form-submit" style={{ padding: '0.75rem 1.25rem' }} onClick={buscarPedido}>Buscar</button>
               {pedidoEncontrado && (
                 <button style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer' }}
@@ -318,9 +331,9 @@ export default function AdminView({ showToast }) {
                 </tr>
               </thead>
               <tbody>
-                {pedidos.map(p => (
-                  <>
-                    <tr key={p.id} style={{ borderBottom: detallePedido === p.id ? 'none' : '1px solid var(--border)' }}>
+                {pedidos.map((p) => (
+                  <Fragment key={p.id}>
+                    <tr style={{ borderBottom: detallePedido === p.id ? 'none' : '1px solid var(--border)' }}>
                       <td style={{ ...tdStyle, fontWeight: 500 }}>#{p.id}</td>
                       <td style={{ ...tdStyle, color: 'var(--text2)' }}>{p.fecha}</td>
                       <td style={tdStyle}>${p.total.toLocaleString('es-AR')}</td>
@@ -338,8 +351,8 @@ export default function AdminView({ showToast }) {
                       <td style={tdStyle}>
                         <select className="form-select" style={{ width: 'auto', fontSize: '0.82rem', padding: '0.35rem 0.5rem' }}
                           value={p.estado}
-                          onChange={e => handleCambiarEstado(p.id, e.target.value)}>
-                          {['PENDIENTE', 'CONFIRMADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'].map(s => (
+                          onChange={(e) => handleCambiarEstado(p.id, e.target.value)}>
+                          {['PENDIENTE', 'CONFIRMADO', 'ENVIADO', 'ENTREGADO', 'CANCELADO'].map((s) => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
@@ -363,36 +376,16 @@ export default function AdminView({ showToast }) {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* USUARIOS */}
+        {/* USUARIOS (solo lectura: el backend expone GET /usuarios) */}
         {tab === 'Usuarios' && (
           <div>
-            {editUser && (
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1.5rem', marginBottom: '1.5rem' }}>
-                <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>Editar usuario</h3>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Nombre</label>
-                    <input className="form-input" value={formUser.nombre || ''} onChange={e => setFormUser(f => ({ ...f, nombre: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Apellido</label>
-                    <input className="form-input" value={formUser.apellido || ''} onChange={e => setFormUser(f => ({ ...f, apellido: e.target.value }))} />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button className="form-submit" onClick={() => { setUsuarios(prev => prev.map(u => u.id === editUser ? { ...u, ...formUser } : u)); showToast('Usuario actualizado'); setEditUser(null) }}>Guardar</button>
-                  <button className="form-submit" style={{ background: 'var(--surface2)', color: 'var(--text)' }} onClick={() => setEditUser(null)}>Cancelar</button>
-                </div>
-              </div>
-            )}
-
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)' }}>
@@ -400,11 +393,10 @@ export default function AdminView({ showToast }) {
                   <th style={thStyle}>Nombre</th>
                   <th style={thStyle}>Email</th>
                   <th style={thStyle}>Rol</th>
-                  <th style={thStyle}></th>
                 </tr>
               </thead>
               <tbody>
-                {usuarios.map(u => (
+                {usuarios.map((u) => (
                   <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ ...tdStyle, fontWeight: 500 }}>{u.username}</td>
                     <td style={{ ...tdStyle, color: 'var(--text2)' }}>{u.nombre} {u.apellido}</td>
@@ -413,12 +405,6 @@ export default function AdminView({ showToast }) {
                       <span style={{ background: u.rol?.nombre === 'ROLE_ADMIN' ? '#dbeafe' : '#e8e8f0', color: u.rol?.nombre === 'ROLE_ADMIN' ? '#1e40af' : '#1a1a2e', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 500 }}>
                         {u.rol?.nombre}
                       </span>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <button style={{ background: '#e8e8f0', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', color: '#1a1a2e' }}
-                        onClick={() => { setFormUser({ ...u }); setEditUser(u.id) }}>
-                        Editar
-                      </button>
                     </td>
                   </tr>
                 ))}

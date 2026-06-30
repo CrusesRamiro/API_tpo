@@ -8,6 +8,11 @@ import authReducer, {
   selectIsLoggedIn,
   selectAuthError,
 } from './authSlice'
+import { login } from '../services/authService'
+
+// las llamadas pasan por el service (axios). En el test mockeamos el
+// service: no hay red real, controlamos qué resuelve o rechaza cada caso.
+vi.mock('../services/authService')
 
 const makeStore = () => configureStore({ reducer: { auth: authReducer } })
 
@@ -16,7 +21,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.restoreAllMocks()
+  vi.resetAllMocks()
 })
 
 describe('authSlice reducers sincronicos', () => {
@@ -42,17 +47,17 @@ describe('authSlice reducers sincronicos', () => {
   })
 })
 
-describe('loginUser (thunk con fetch mockeado)', () => {
+describe('loginUser (thunk con el service mockeado)', () => {
   it('login OK: mapea la respuesta, guarda el usuario y persiste', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ userId: 7, username: 'maxi', rol: 'ROLE_ADMIN', token: 'jwt-123' }),
-    }))
+    // El interceptor de axios devuelve response.data, así que el service
+    // resuelve directamente con el objeto del backend.
+    login.mockResolvedValue({ userId: 7, username: 'maxi', rol: 'ROLE_ADMIN', token: 'jwt-123' })
 
     const store = makeStore()
     await store.dispatch(loginUser({ username: 'maxi', password: '1234' }))
 
     const state = store.getState()
+    expect(login).toHaveBeenCalledWith('maxi', '1234')
     expect(selectUser(state)).toEqual({ id: 7, username: 'maxi', rol: 'ROLE_ADMIN', token: 'jwt-123' })
     expect(selectIsLoggedIn(state)).toBe(true)
     expect(state.auth.status).toBe('succeeded')
@@ -60,7 +65,8 @@ describe('loginUser (thunk con fetch mockeado)', () => {
   })
 
   it('login fallido: guarda el error y no loguea', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }))
+    // El service rechaza con el Error que ya normalizó el interceptor.
+    login.mockRejectedValue(new Error('Usuario o contraseña incorrectos'))
 
     const store = makeStore()
     await store.dispatch(loginUser({ username: 'x', password: 'mal' }))

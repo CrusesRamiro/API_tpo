@@ -1,29 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getProductos } from '../services/productoService'
-import { getCategorias } from '../services/categoriaService'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchProductos, selectProductos, selectProductosLoading } from '../store/productosSlice'
+import { fetchCategorias, selectCategorias } from '../store/categoriasSlice'
 import CategoryTabs from '../components/CategoryTabs'
 import ProductGrid from '../components/ProductGrid'
 
 export default function HomeView({ showToast }) {
-  const [productos, setProductos] = useState([])
-  const [categorias, setCategorias] = useState([])
-  const [activeCat, setActiveCat] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const dispatch = useDispatch()
   const navigate = useNavigate()
+  const productos = useSelector(selectProductos)
+  const categorias = useSelector(selectCategorias)
+  const loading = useSelector(selectProductosLoading)
+  const [activeCat, setActiveCat] = useState(null) // estado de UI: filtro local
 
   useEffect(() => {
-    Promise.all([getProductos(), getCategorias()])
-      .then(([items, cats]) => {
-        setProductos(items)
-        setCategorias(cats)
-      })
-      .finally(() => setLoading(false))
-  }, [])
+    dispatch(fetchProductos())
+    dispatch(fetchCategorias())
+  }, [dispatch])
 
   const featured = productos.slice(0, 4)
   const filtered = activeCat
-    ? productos.filter(p => p.categoria?.id === activeCat)
+    ? productos.filter((p) => p.categoria?.id === activeCat)
     : productos.slice(0, 8)
 
   return (

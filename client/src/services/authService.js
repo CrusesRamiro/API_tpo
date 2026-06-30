@@ -1,19 +1,6 @@
-export async function login(username, password) {
-  const res = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
-  })
-  if (!res.ok) throw new Error('Usuario o contraseña incorrectos')
-  return res.json()
-}
+import api from './api'
 
-export async function register(data) {
-  const res = await fetch('/api/usuarios', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) throw new Error('Error al crear la cuenta')
-  return res.json()
-}
+export const login = (username, password) =>
+  api.post('/auth/login', { username, password })
+
+export const register = (data) => api.post('/usuarios', data)

@@ -1,25 +1,27 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectUser, selectIsLoggedIn } from '../store/authSlice'
-import { getPedidosByUsuario } from '../services/pedidoService'
+import {
+  fetchPedidosByUsuario,
+  selectPedidos,
+  selectPedidosLoading,
+  selectPedidosError,
+} from '../store/pedidosSlice'
 
 export default function PedidosView() {
+  const dispatch = useDispatch()
   const user = useSelector(selectUser)
   const isLoggedIn = useSelector(selectIsLoggedIn)
-  const [pedidos, setPedidos] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [openId, setOpenId] = useState(null)
+  const pedidos = useSelector(selectPedidos)
+  const loading = useSelector(selectPedidosLoading)
+  const error = useSelector(selectPedidosError)
+  const [openId, setOpenId] = useState(null) // estado de UI: acordeón
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!isLoggedIn) { setLoading(false); return }
-    getPedidosByUsuario(user.id, user.token)
-      .then(setPedidos)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [isLoggedIn, user])
+    if (isLoggedIn) dispatch(fetchPedidosByUsuario(user.id))
+  }, [dispatch, isLoggedIn, user])
 
   if (!isLoggedIn) {
     return (
@@ -44,7 +46,7 @@ export default function PedidosView() {
         <p style={{ color: 'var(--text3)' }}>Todavía no tenés pedidos realizados.</p>
       )}
 
-      {pedidos.map(order => (
+      {pedidos.map((order) => (
         <div className="order-card" key={order.id}>
           <div className="order-header" onClick={() => setOpenId(openId === order.id ? null : order.id)}>
             <div>

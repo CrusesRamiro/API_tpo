@@ -1,9 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { selectUser } from '../store/authSlice'
-import { selectCartItems, clearCart } from '../store/cartSlice'
-import { vaciarCarrito, agregarItemCarrito, checkout } from '../services/carritoService'
+import {
+  selectCartItems,
+  checkoutCart,
+  resetCheckout,
+  selectCheckoutStatus,
+  selectCheckoutError,
+} from '../store/cartSlice'
+
 const METODOS = [
   { id: 'tarjeta', label: 'Tarjeta de crédito / débito', icono: '💳' },
   { id: 'transferencia', label: 'Transferencia bancaria', icono: '🏦' },
@@ -12,19 +17,36 @@ const METODOS = [
 
 export default function PagoView({ showToast }) {
   const cart = useSelector(selectCartItems)
-  const user = useSelector(selectUser)
+  const checkoutStatus = useSelector(selectCheckoutStatus)
+  const checkoutError = useSelector(selectCheckoutError)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const [metodo, setMetodo] = useState('tarjeta')
   const [form, setForm] = useState({ numero: '', nombre: '', vencimiento: '', cvv: '', cbu: '', alias: '' })
   const [errors, setErrors] = useState({})
-  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const loading = checkoutStatus === 'loading'
 
   const total = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
+  // Reaccionamos al resultado del checkout leyendo el estado del slice.
+  useEffect(() => {
+    if (!submitted) return
+    if (checkoutStatus === 'succeeded') {
+      showToast('¡Pago confirmado!')
+      dispatch(resetCheckout())
+      navigate('/pedidos')
+    }
+    if (checkoutStatus === 'failed') {
+      showToast('Error: ' + checkoutError)
+      dispatch(resetCheckout())
+      setSubmitted(false)
+    }
+  }, [submitted, checkoutStatus, checkoutError, dispatch, navigate, showToast])
+
   function handleChange(field, value) {
-    setForm(f => ({ ...f, [field]: value }))
-    if (errors[field]) setErrors(e => ({ ...e, [field]: null }))
+    setForm((f) => ({ ...f, [field]: value }))
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: null }))
   }
 
   function validate() {
@@ -41,41 +63,31 @@ export default function PagoView({ showToast }) {
     return e
   }
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
     const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-
-    setLoading(true)
-    try {
-      await vaciarCarrito(user.id, user.token)
-      for (const item of cart) {
-        await agregarItemCarrito(user.id, item.id, item.cantidad, user.token)
-      }
-      await checkout(user.id, user.token)
-      dispatch(clearCart())
-      showToast('¡Pago confirmado!')
-      navigate('/pedidos')
-    } catch (err) {
-      showToast('Error: ' + err.message)
-    } finally {
-      setLoading(false)
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
     }
+    setSubmitted(true)
+    dispatch(checkoutCart())
   }
 
-  if (cart.length === 0) {
+  // Mientras no se haya confirmado el pago, un carrito vacío manda al carrito.
+  if (cart.length === 0 && !submitted) {
     navigate('/carrito')
     return null
   }
 
   function detectarTarjeta(numero) {
-  const n = numero.replace(/\s/g, '')
-  if (n.startsWith('4')) return 'Visa'
-  if (/^5[1-5]/.test(n) || /^2(2[2-9][1-9]|[3-6]\d{2}|7[01]\d|720)/.test(n)) return 'Mastercard'
-  return null
+    const n = numero.replace(/\s/g, '')
+    if (n.startsWith('4')) return 'Visa'
+    if (/^5[1-5]/.test(n) || /^2(2[2-9][1-9]|[3-6]\d{2}|7[01]\d|720)/.test(n)) return 'Mastercard'
+    return null
   }
 
-const tipoTarjeta = detectarTarjeta(form.numero)
+  const tipoTarjeta = detectarTarjeta(form.numero)
   return (
     <>
       <div className="page-header">
@@ -84,12 +96,12 @@ const tipoTarjeta = detectarTarjeta(form.numero)
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', padding: '2.5rem 2rem', maxWidth: '1100px', margin: '0 auto' }}>
-        
+
         {/* FORMULARIO */}
         <div>
           {/* SELECTOR DE MÉTODO */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-            {METODOS.map(m => (
+            {METODOS.map((m) => (
               <div
                 key={m.id}
                 onClick={() => setMetodo(m.id)}
@@ -125,7 +137,7 @@ const tipoTarjeta = detectarTarjeta(form.numero)
                     maxLength={19}
                     value={form.numero}
                     style={{ paddingRight: tipoTarjeta ? '110px' : '1rem' }}
-                    onChange={e => {
+                    onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '').slice(0, 16)
                       const fmt = val.match(/.{1,4}/g)?.join(' ') || val
                       handleChange('numero', fmt)
@@ -148,7 +160,7 @@ const tipoTarjeta = detectarTarjeta(form.numero)
               <div className="form-group">
                 <label className="form-label">Nombre en la tarjeta</label>
                 <input className="form-input" placeholder="Como figura en la tarjeta"
-                  value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} />
+                  value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} />
                 {errors.nombre && <span className="field-error">{errors.nombre}</span>}
               </div>
               <div className="form-row">
@@ -159,28 +171,26 @@ const tipoTarjeta = detectarTarjeta(form.numero)
                     placeholder="MM/AA"
                     maxLength={5}
                     value={form.vencimiento}
-                    onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 4)
-
-                    if (val.length >= 1) {
-                      const primerDigito = parseInt(val[0])
-                      if (primerDigito > 1) return
-                    }
-                    if (val.length >= 2) {
-                      const mes = parseInt(val.slice(0, 2))
-                      if (mes > 12 || mes === 0) return
-                    }
-
-                    const fmt = val.length > 2 ? val.slice(0, 2) + '/' + val.slice(2) : val
-                    handleChange('vencimiento', fmt)
-                  }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 4)
+                      if (val.length >= 1) {
+                        const primerDigito = parseInt(val[0])
+                        if (primerDigito > 1) return
+                      }
+                      if (val.length >= 2) {
+                        const mes = parseInt(val.slice(0, 2))
+                        if (mes > 12 || mes === 0) return
+                      }
+                      const fmt = val.length > 2 ? val.slice(0, 2) + '/' + val.slice(2) : val
+                      handleChange('vencimiento', fmt)
+                    }}
                   />
                   {errors.vencimiento && <span className="field-error">{errors.vencimiento}</span>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">CVV</label>
                   <input className="form-input" placeholder="123" maxLength={3}
-                    value={form.cvv} onChange={e => handleChange('cvv', e.target.value.replace(/\D/g, ''))} />
+                    value={form.cvv} onChange={(e) => handleChange('cvv', e.target.value.replace(/\D/g, ''))} />
                   {errors.cvv && <span className="field-error">{errors.cvv}</span>}
                 </div>
               </div>
@@ -202,7 +212,7 @@ const tipoTarjeta = detectarTarjeta(form.numero)
               <div className="form-group">
                 <label className="form-label">Tu CBU o alias (para confirmar)</label>
                 <input className="form-input" placeholder="Tu CBU o alias"
-                  value={form.cbu} onChange={e => handleChange('cbu', e.target.value)} />
+                  value={form.cbu} onChange={(e) => handleChange('cbu', e.target.value)} />
                 {errors.cbu && <span className="field-error">{errors.cbu}</span>}
               </div>
               <button type="submit" className="form-submit" style={{ width: '100%' }} disabled={loading}>
@@ -230,7 +240,7 @@ const tipoTarjeta = detectarTarjeta(form.numero)
         {/* RESUMEN */}
         <div className="cart-summary">
           <h3>Resumen</h3>
-          {cart.map(item => (
+          {cart.map((item) => (
             <div className="summary-row" key={item.id}>
               <span>{item.nombre} x {item.cantidad}</span>
               <span>${(item.precio * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
