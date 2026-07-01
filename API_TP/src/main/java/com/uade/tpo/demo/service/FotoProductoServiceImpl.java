@@ -1,6 +1,7 @@
 package com.uade.tpo.demo.service;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +27,11 @@ public class FotoProductoServiceImpl implements FotoProductoService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item no encontrado con id: " + itemId));
 
+        byte[] bytes = archivo.getBytes();
         FotoProducto foto = FotoProducto.builder()
                 .item(item)
-                .imagen(archivo.getBytes())
+                .imagen(Base64.getEncoder().encodeToString(bytes))
+                .imagenLegacyOid(0L)
                 .build();
 
         return fotoProductoRepository.save(foto);

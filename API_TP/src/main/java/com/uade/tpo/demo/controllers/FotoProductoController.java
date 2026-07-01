@@ -1,7 +1,6 @@
 package com.uade.tpo.demo.controllers;
 
 import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +36,7 @@ public class FotoProductoController {
     public ResponseEntity<List<String>> getFotos(@PathVariable Long itemId) {
         List<String> fotos = fotoProductoService.getFotosByItem(itemId)
                 .stream()
-                .map(foto -> Base64.getEncoder().encodeToString(foto.getImagen()))
+                .map(foto -> foto.getImagen())
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(fotos);

@@ -10,13 +10,7 @@ import {
   selectProductosError,
 } from '../store/productosSlice'
 import QuantityControl from '../components/QuantityControl'
-
-function getImageSrc(base64) {
-  if (!base64) return null
-  if (base64.startsWith('/9j/')) return `data:image/jpeg;base64,${base64}`
-  if (base64.startsWith('iVBORw')) return `data:image/png;base64,${base64}`
-  return `data:image/jpeg;base64,${base64}`
-}
+import { getProductImageSrc } from '../utils/productImages.js'
 
 export default function DetalleView({ showToast }) {
   const { id } = useParams()
@@ -43,7 +37,7 @@ export default function DetalleView({ showToast }) {
     )
   }
 
-  const imageSrc = getImageSrc(product.fotos?.[0]?.imagen)
+  const imageSrc = getProductImageSrc(product)
 
   function handleAddToCart() {
     dispatch(addToCart(product, qty))

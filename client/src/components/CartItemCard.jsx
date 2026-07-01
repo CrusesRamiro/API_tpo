@@ -1,11 +1,8 @@
 import QuantityControl from './QuantityControl'
+import { getProductImageSrc } from '../utils/productImages.js'
 
 export default function CartItemCard({ item, updateQty, removeItem }) {
-  const imageSrc = item.fotos?.[0]?.imagen
-    ? item.fotos[0].imagen.startsWith('/9j/')
-      ? `data:image/jpeg;base64,${item.fotos[0].imagen}`
-      : `data:image/png;base64,${item.fotos[0].imagen}`
-    : null
+  const imageSrc = getProductImageSrc(item)
 
   return (
     <div className="cart-item">

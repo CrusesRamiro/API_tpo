@@ -8,7 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -33,7 +32,12 @@ public class FotoProducto {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    @Lob
-    @Column(nullable = false)
-    private byte[] imagen;
+    @Column(name = "imagen64bits", nullable = false, columnDefinition = "text")
+    private String imagen;
+
+    // Columna legacy del schema actual. Ya no la usamos para leer/escribir imágenes,
+    // pero la mantenemos para satisfacer la restricción NOT NULL existente en la base.
+    @JsonIgnore
+    @Column(name = "imagen", nullable = false)
+    private Long imagenLegacyOid;
 }

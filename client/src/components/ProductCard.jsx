@@ -1,13 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { addToCart } from '../store/cartSlice'
-
-function getImageSrc(base64) {
-  if (!base64) return null
-  if (base64.startsWith('/9j/')) return `data:image/jpeg;base64,${base64}`
-  if (base64.startsWith('iVBORw')) return `data:image/png;base64,${base64}`
-  return `data:image/jpeg;base64,${base64}`
-}
+import { getProductImageSrc } from '../utils/productImages.js'
 
 export default function ProductCard({ product, showToast }) {
   const navigate = useNavigate()
@@ -19,7 +13,7 @@ export default function ProductCard({ product, showToast }) {
     showToast(`${product.nombre} agregado al carrito`)
   }
 
-  const imageSrc = getImageSrc(product.fotos?.[0]?.imagen)
+  const imageSrc = getProductImageSrc(product)
   const categoria = product.categoria?.nombre
 
   return (
